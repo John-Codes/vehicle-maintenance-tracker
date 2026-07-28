@@ -46,6 +46,8 @@ app.*.map.json
 .env
 .env.*
 !.env.example
+!.env.example.json
+.env.json
 
 # Python
 __pycache__/
