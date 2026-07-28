@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: vehicle-tracker-api
+    runtime: docker
+    dockerImage: your-dockerhub-user/vehicle-tracker-api:latest
+    healthCheckPath: /health
+    envVars:
+      - key: MONGO_STORE_URL
+        value: https://your-mongo-api.onrender.com
+      - key: APP_API_KEY
+        generateValue: true
+      - key: CORS_ALLOWED_ORIGINS
+        value: "*"

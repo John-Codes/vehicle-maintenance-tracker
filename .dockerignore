@@ -1,0 +1,9 @@
+.dart_tool
+.git
+build
+backend/.venv
+android
+ios
+test
+.idea
+*.iml

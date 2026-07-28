@@ -1,0 +1,25 @@
+services:
+  mongo-api:
+    build: "../MongoDB Fast API"
+    environment:
+      MONGO_URI: ${MONGO_URI}
+      DB_NAME: ${DB_NAME:-mystore}
+      COLLECTION: ${COLLECTION:-items}
+    ports: ["8003:8002"]
+
+  tracker-api:
+    build: ./backend
+    environment:
+      MONGO_STORE_URL: http://mongo-api:8002
+      APP_API_KEY: ${APP_API_KEY:-change-me}
+      CORS_ALLOWED_ORIGINS: http://localhost:8080
+    ports: ["8010:8010"]
+    depends_on: [mongo-api]
+
+  tracker-web:
+    build: .
+    environment:
+      API_URL: http://tracker-api:8010
+      PORT: 8080
+    ports: ["8080:8080"]
+    depends_on: [tracker-api]
