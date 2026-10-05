@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../app/app.dart';
+import '../../core/cold_start_notice.dart';
 import 'profile_repository.dart';
 import 'technician.dart';
 
@@ -22,7 +23,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
   @override Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('Technician settings')),
-    body: loading ? const Center(child: CircularProgressIndicator()) : ListView(padding: const EdgeInsets.all(20), children: [
+    body: loading ? const ColdStartNotice() : ListView(padding: const EdgeInsets.all(20), children: [
       TextField(controller: name, decoration: const InputDecoration(labelText: 'Technician name')),
       TextField(controller: phone, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Phone number')),
       TextField(controller: email, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Email')),

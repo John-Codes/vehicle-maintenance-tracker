@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/cold_start_notice.dart';
 import '../editor/record_editor_page.dart';
 import 'records_repository.dart';
 import 'service_record.dart';
@@ -20,8 +21,8 @@ class _RecordsPageState extends State<RecordsPage> {
   @override Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('Service records')),
     body: FutureBuilder<List<ServiceRecord>>(future: records, builder: (_, snap) {
-      if (snap.connectionState != ConnectionState.done) return const Center(child: CircularProgressIndicator());
-      if (snap.hasError) return Center(child: Text('Could not load records\n${snap.error}', textAlign: TextAlign.center));
+      if (snap.connectionState != ConnectionState.done) return const ColdStartNotice();
+      if (snap.hasError) return Center(child: Text('Could not load records\n${snap.error}\nIf the free-tier database was asleep, try again.', textAlign: TextAlign.center));
       if (snap.data!.isEmpty) return const Center(child: Text('Start your first service record.'));
       return ListView.builder(itemCount: snap.data!.length, itemBuilder: (_, i) { final r = snap.data![i]; final done = r.steps.where((x) => x.done).length;       return Dismissible(
         key: ValueKey(r.id),

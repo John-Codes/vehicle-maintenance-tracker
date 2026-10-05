@@ -1,18 +1,39 @@
+import asyncio
+
 import httpx
 from fastapi import HTTPException
 from .config import STORE_URL
+
+RETRYABLE_STATUS = {429, 502, 503}
+BACKOFF_SECONDS = (5, 10, 20, 30)
+
 
 class Store:
     def __init__(self):
         self._client = httpx.AsyncClient(timeout=30)
 
     async def _request(self, method, path, **kwargs):
-        try:
-            response = await self._client.request(method, f'{STORE_URL}{path}', **kwargs)
-            if response.status_code >= 400: raise HTTPException(response.status_code, response.text)
-            return response.json() if response.content else None
-        except httpx.HTTPError as exc:
-            raise HTTPException(503, 'Mongo storage is unavailable') from exc
+        last_error = None
+        for delay in (*BACKOFF_SECONDS, None):
+            try:
+                response = await self._client.request(method, f'{STORE_URL}{path}', **kwargs)
+                if response.status_code >= 400:
+                    if response.status_code in RETRYABLE_STATUS and delay is not None:
+                        last_error = response
+                        await asyncio.sleep(delay)
+                        continue
+                    raise HTTPException(response.status_code, response.text)
+                return response.json() if response.content else None
+            except httpx.HTTPError as exc:
+                if delay is None:
+                    break
+                last_error = exc
+                await asyncio.sleep(delay)
+        if last_error is not None:
+            if isinstance(last_error, httpx.HTTPError):
+                raise HTTPException(503, 'Mongo storage is unavailable') from last_error
+            raise HTTPException(last_error.status_code, last_error.text)
+        raise HTTPException(503, 'Mongo storage is unavailable')
 
     async def close(self):
         await self._client.aclose()
