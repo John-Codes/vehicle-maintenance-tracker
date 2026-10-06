@@ -25,13 +25,13 @@ class _RecordsPageState extends State<RecordsPage> {
       if (snap.connectionState != ConnectionState.done) return const ColdStartNotice();
       if (snap.hasError) return Center(child: Text('Could not load records\n${snap.error}\nIf the free-tier database was asleep, try again.', textAlign: TextAlign.center));
       if (snap.data!.isEmpty) return const Center(child: Text('Start your first service record.'));
-      return ListView.builder(itemCount: snap.data!.length, itemBuilder: (_, i) { final r = snap.data![i]; final done = r.steps.where((x) => x.done).length;       return Dismissible(
+      return ListView.builder(itemCount: snap.data!.length, itemBuilder: (_, i) { final r = snap.data![i]; final leaves = r.schedule.leaves; final done = leaves.where((x) => x.done).length;       return Dismissible(
         key: ValueKey(r.id),
         direction: DismissDirection.endToStart,
         background: Container(alignment: Alignment.centerRight, padding: const EdgeInsets.only(right: 20), color: Colors.red, child: const Icon(Icons.delete, color: Colors.white)),
         confirmDismiss: (_) async { await confirmDelete(r); return false; },
         child: ListTile(minVerticalPadding: biggerTextButtonsEnabled ? 12 : null, contentPadding: biggerTextButtonsEnabled ? const EdgeInsets.symmetric(horizontal: 20, vertical: 8) : null,
-          title: Text(r.vehicleNumber.isEmpty ? 'New service record' : r.vehicleNumber), subtitle: Text('${r.dateStarted.split('T').first} · $done/${r.steps.length} complete'),
+          title: Text(r.vehicleNumber.isEmpty ? 'New service record' : r.vehicleNumber), subtitle: Text('${r.dateStarted.split('T').first} · $done/${leaves.length} complete'),
           trailing: Row(mainAxisSize: MainAxisSize.min, children: [
             IconButton(icon: const Icon(Icons.delete_outline, color: Colors.red), onPressed: () => confirmDelete(r)),
             const Icon(Icons.chevron_right),

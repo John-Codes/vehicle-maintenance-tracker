@@ -1,16 +1,11 @@
-from .schemas import CheckStep
+from .schemas import FrequencyList, MaintenanceSchedule
 
-DEFAULT_TITLES = ['Brakes', 'AC fans', 'Air reservoir', 'Strobe light', 'Lights', 'DOT tires', 'DEF', 'Engine air filter', 'Parts needed']
+def empty_schedule():
+    return MaintenanceSchedule(daily=FrequencyList(), weekly=FrequencyList(), monthly=FrequencyList())
 
-def clean_steps(steps):
-    seen = set()
-    result = []
-    for raw in steps:
-        step = CheckStep.model_validate(raw)
-        if step.id in seen: raise ValueError('Step IDs must be unique')
-        seen.add(step.id)
-        result.append(CheckStep(id=step.id, title=step.title))
-    return result
-
-def default_steps():
-    return [CheckStep(id=title.lower().replace(' ', '_'), title=title) for title in DEFAULT_TITLES]
+def step_ids(schedule: MaintenanceSchedule):
+    ids = []
+    for frequency in (schedule.daily, schedule.weekly, schedule.monthly):
+        for component in frequency.components:
+            ids.extend(step.id for step in component.steps)
+    return ids
