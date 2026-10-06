@@ -69,14 +69,18 @@ Every service record stores a `schedule`. There is no flat `steps` list. Flutter
 
 ### Local Development
 
-**1. Start the MongoDB storage service** (or point to an existing instance)
+**1. Start the local test database** (Docker — never test against the prod DB):
 
-**2. Start the backend:**
+```bash
+docker run -d --name tracker-test-mongo -p 27017:27017 mongo:7
+```
+
+**2. Start the backend** (pointed at the local test DB):
 
 ```bash
 cd backend
 pip install -r requirements.txt
-MONGO_STORE_URL=http://127.0.0.1:8002 APP_API_KEY=change-me uvicorn app.main:app --host 0.0.0.0 --port 8010
+MONGO_URI=mongodb://127.0.0.1:27017 DB_NAME=tracker_local APP_API_KEY=change-me uvicorn app.main:app --host 0.0.0.0 --port 8010
 ```
 
 **3. Run the Flutter app:**
@@ -85,6 +89,14 @@ MONGO_STORE_URL=http://127.0.0.1:8002 APP_API_KEY=change-me uvicorn app.main:app
 flutter pub get
 flutter run -d chrome --dart-define=API_URL=http://localhost:8010 --dart-define=API_KEY=change-me
 ```
+
+### Local review stack (one command)
+
+```bash
+sh scripts/local_stack.sh
+```
+
+Starts the Docker MongoDB, starts the backend pointed at it, runs the e2e suite against that local DB, builds and serves the web app, and prints the review link. Prod database is never touched.
 
 ### Docker
 
@@ -181,15 +193,28 @@ All endpoints except `/health` require the `X-App-Key` header.
 
 ## Branch Update Workflow
 
-Every change follows this workflow. **Tests are always real end-to-end (real backend, real database, real HTTP) — never mocked or faked.**
+Every change follows this workflow. **Tests are always real end-to-end (real backend, real database, real HTTP) — never mocked or faked. Test data never touches the production database.**
 
 1. **Branch** off `main` (branches are never deleted)
 2. **Implement** — each file under 100 lines, one feature per folder, SRP, clear names (see `BRANCH_UPDATE_RULES.md`)
-3. **Local end-to-end tests pass** (real API round-trips, real database writes, `flutter build` clean)
+3. **Local review** — `sh scripts/local_stack.sh` runs the e2e suite against the local Docker MongoDB, then serves a review link (local DB only)
 4. **Push branch, open a PR**
-5. **Merge the PR** to `main`
-6. **Build + push the Docker image(s), deploy to Render**
-7. **Run the same tests against production** — a change is only "shipped" when prod passes the same end-to-end tests
+5. **PR CI** — `pr-checks` workflow runs analyze, unit tests, and the same e2e against a throwaway dev MongoDB container
+6. **All tests pass → PR auto-merges** to `main` (required status check, auto-merge enabled)
+7. **Ship** — `deploy` workflow re-runs e2e on a fresh dev DB, then builds and pushes the Docker images (web image gets prod API config from GitHub secrets) and deploys both services to Render
+8. **Prod e2e** — the same e2e tests run against production; the change is only "shipped" when prod passes
+
+## CI/CD
+
+Public repo — all credentials live in GitHub encrypted secrets, never in code:
+
+| Secret | Used for |
+|--------|----------|
+| `DOCKERHUB_USERNAME` / `DOCKERHUB_TOKEN` | Push images to Docker Hub |
+| `RENDER_API_KEY` | Trigger and watch Render deploys |
+| `PROD_API_URL` / `PROD_API_KEY` | Bake prod API config into the web image; run prod e2e |
+
+Local review and CI always point at a local/throwaway MongoDB. Production points at the prod MongoDB via Render's configured `MONGO_URI` — the pipeline never supplies a DB connection at deploy time.
 
 ## License
 
