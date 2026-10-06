@@ -1,48 +1,64 @@
-import asyncio
-
-import httpx
+from bson import ObjectId
 from fastapi import HTTPException
-from .config import STORE_URL
+from motor.motor_asyncio import AsyncIOMotorClient
+from .config import COLLECTION, DB_NAME, MONGO_URI
 
-RETRYABLE_STATUS = {429, 502, 503}
-BACKOFF_SECONDS = (5, 10, 20, 30)
+
+def _oid(item_id):
+    try:
+        return ObjectId(item_id)
+    except Exception:
+        raise HTTPException(400, 'Invalid ID format')
+
+
+def _to_item(doc):
+    if doc is None:
+        return None
+    doc['id'] = str(doc.pop('_id'))
+    return doc
 
 
 class Store:
     def __init__(self):
-        self._client = httpx.AsyncClient(timeout=30)
-
-    async def _request(self, method, path, **kwargs):
-        last_error = None
-        for delay in (*BACKOFF_SECONDS, None):
-            try:
-                response = await self._client.request(method, f'{STORE_URL}{path}', **kwargs)
-                if response.status_code >= 400:
-                    if response.status_code in RETRYABLE_STATUS and delay is not None:
-                        last_error = response
-                        await asyncio.sleep(delay)
-                        continue
-                    raise HTTPException(response.status_code, response.text)
-                return response.json() if response.content else None
-            except httpx.HTTPError as exc:
-                if delay is None:
-                    break
-                last_error = exc
-                await asyncio.sleep(delay)
-        if last_error is not None:
-            if isinstance(last_error, httpx.HTTPError):
-                raise HTTPException(503, 'Mongo storage is unavailable') from last_error
-            raise HTTPException(last_error.status_code, last_error.text)
-        raise HTTPException(503, 'Mongo storage is unavailable')
-
-    async def close(self):
-        await self._client.aclose()
+        self._client = AsyncIOMotorClient(
+            MONGO_URI,
+            serverSelectionTimeoutMS=5000,
+            connectTimeoutMS=5000,
+            socketTimeoutMS=10000,
+        )
+        self._collection = self._client[DB_NAME][COLLECTION]
 
     async def list(self, record_type):
-        return await self._request('GET', '/items', params={'record_type': record_type, 'sort': '-created_at', 'limit': 5000})
-    async def get(self, item_id): return await self._request('GET', f'/items/{item_id}')
-    async def create(self, item): return await self._request('POST', '/items', json=item)
-    async def update(self, item_id, item): return await self._request('PUT', f'/items/{item_id}', json=item)
-    async def delete(self, item_id): return await self._request('DELETE', f'/items/{item_id}')
+        cursor = self._collection.find({'record_type': record_type}).sort('created_at', -1).limit(5000)
+        return [_to_item(doc) for doc in await cursor.to_list(length=5000)]
+
+    async def get(self, item_id):
+        doc = await self._collection.find_one({'_id': _oid(item_id)})
+        if doc is None:
+            raise HTTPException(404, 'Item not found')
+        return _to_item(doc)
+
+    async def create(self, item):
+        result = await self._collection.insert_one(item)
+        return _to_item(await self._collection.find_one({'_id': result.inserted_id}))
+
+    async def update(self, item_id, item):
+        fields = {k: v for k, v in item.items() if k not in ('id', '_id')}
+        if not fields:
+            raise HTTPException(400, 'No fields to update')
+        doc = await self._collection.find_one_and_update(
+            {'_id': _oid(item_id)}, {'$set': fields}, return_document=True)
+        if doc is None:
+            raise HTTPException(404, 'Item not found')
+        return _to_item(doc)
+
+    async def delete(self, item_id):
+        result = await self._collection.delete_one({'_id': _oid(item_id)})
+        if result.deleted_count == 0:
+            raise HTTPException(404, 'Item not found')
+
+    async def close(self):
+        self._client.close()
+
 
 store = Store()
