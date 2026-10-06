@@ -1,0 +1,39 @@
+name: pr-checks
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:7
+        ports: ['27017:27017']
+    env:
+      MONGO_URI: mongodb://localhost:27017
+      DB_NAME: tracker_dev
+      COLLECTION: items
+      APP_API_KEY: ci-dev-key
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.38.9
+          cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Flutter analyze
+        run: flutter pub get && flutter analyze --no-fatal-infos
+      - name: Flutter tests
+        run: flutter test
+      - name: Backend e2e against throwaway dev DB
+        working-directory: backend
+        run: |
+          pip install -r requirements.txt
+          uvicorn app.main:app --host 127.0.0.1 --port 8011 &
+          UVPID=$!
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8011/health >/dev/null && break; sleep 2; done
+          API_URL=http://127.0.0.1:8011 python e2e_schedule.py
+          kill $UVPID

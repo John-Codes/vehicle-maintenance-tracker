@@ -1,0 +1,65 @@
+name: deploy
+on:
+  push:
+    branches: [main]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:7
+        ports: ['27017:27017']
+    env:
+      MONGO_URI: mongodb://localhost:27017
+      DB_NAME: tracker_dev
+      COLLECTION: items
+      APP_API_KEY: ci-dev-key
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Backend e2e against throwaway dev DB
+        working-directory: backend
+        run: |
+          pip install -r requirements.txt
+          uvicorn app.main:app --host 127.0.0.1 --port 8011 &
+          UVPID=$!
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8011/health >/dev/null && break; sleep 2; done
+          API_URL=http://127.0.0.1:8011 python e2e_schedule.py
+          kill $UVPID
+
+  ship:
+    runs-on: ubuntu-latest
+    needs: [e2e]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Docker Hub login
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+      - name: Build and push API image
+        run: |
+          docker build -t efexzium/vehicle-tracker-api:latest ./backend
+          docker push efexzium/vehicle-tracker-api:latest
+      - name: Build and push web image with prod API config
+        run: |
+          docker build -t efexzium/vehicle-tracker-web:latest \
+            --build-arg API_URL=${{ secrets.PROD_API_URL }} \
+            --build-arg API_KEY=${{ secrets.PROD_API_KEY }} .
+          docker push efexzium/vehicle-tracker-web:latest
+      - name: Deploy API to Render
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        run: python scripts/render_deploy.py srv-d9jlcm3tqb8s73akacl0
+      - name: Deploy web to Render
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        run: python scripts/render_deploy.py srv-db206vijnfac73edprvg
+      - name: Same e2e tests against production
+        env:
+          API_URL: ${{ secrets.PROD_API_URL }}
+          APP_API_KEY: ${{ secrets.PROD_API_KEY }}
+        run: python backend/e2e_schedule.py

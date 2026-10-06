@@ -9,3 +9,4 @@ Do NOT refactor existing working code to comply with these rules. These rules ap
 5. **Use very clear names** — names must explain what is going on (files, classes, vars, fields).
 6. **Additive & safe** — never break existing behavior; default new fields/values so old records/data remain compatible.
 7. **End-to-end tests only** — always test against the real backend, real database, and real HTTP. Never mock or fake tests.
+8. **Local test DB only** — never run tests, e2e, or review links against the production database. Locally use `scripts/local_stack.sh` (Docker MongoDB); CI uses a throwaway MongoDB container. Production is only touched by the deploy workflow's final prod e2e check.
