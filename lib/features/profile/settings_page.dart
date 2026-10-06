@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../app/app.dart';
 import '../../core/cold_start_notice.dart';
+import '../../core/large_display.dart';
 import 'profile_repository.dart';
 import 'technician.dart';
 
@@ -34,6 +35,16 @@ class _SettingsPageState extends State<SettingsPage> {
           title: const Text('Dark mode'),
           value: mode == ThemeMode.dark,
           onChanged: (_) => themeNotifier.value = mode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark,
+        ),
+      ),
+      const SizedBox(height: 12),
+      ValueListenableBuilder<bool>(
+        valueListenable: biggerTextButtonsNotifier,
+        builder: (_, bigger, child) => SwitchListTile(
+          title: const Text('Bigger text & buttons'),
+          subtitle: const Text('Easier reading and tapping'),
+          value: bigger,
+          onChanged: (value) => saveBiggerTextButtonsSetting(value),
         ),
       ),
       const SizedBox(height: 12),

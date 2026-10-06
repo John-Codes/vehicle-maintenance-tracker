@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/large_display.dart';
 import '../exports/export_service.dart';
 import '../records/check_step.dart';
 import '../records/records_repository.dart';
@@ -48,10 +49,10 @@ class _RecordEditorPageState extends State<RecordEditorPage> {
         TextField(controller: workers, decoration: const InputDecoration(labelText: 'Worker names (comma separated)')),
         const SizedBox(height: 12), const Text('Inspection', style: TextStyle(fontWeight: FontWeight.bold)),
         ...record.steps.map((s) => StepTile(step: s, onChanged: update, onDelete: () => setState(() => record = record.copyWith(steps: record.steps.where((x) => x.id != s.id).toList())))),
-        OutlinedButton.icon(onPressed: () => setState(() => record = record.copyWith(steps: [...record.steps, CheckStep(id: DateTime.now().microsecondsSinceEpoch.toString(), title: 'New item')])), icon: const Icon(Icons.add), label: const Text('Add item')),
+        OutlinedButton.icon(onPressed: () => setState(() => record = record.copyWith(steps: [...record.steps, CheckStep(id: DateTime.now().microsecondsSinceEpoch.toString(), title: 'New item')])), style: OutlinedButton.styleFrom(minimumSize: biggerTextButtonsEnabled ? const Size.fromHeight(52) : null), icon: const Icon(Icons.add), label: const Text('Add item')),
         TextField(controller: notes, maxLines: 3, decoration: const InputDecoration(labelText: 'Notes')),
         TextField(controller: next, maxLines: 3, decoration: const InputDecoration(labelText: 'Next steps')),
-        const SizedBox(height: 16), FilledButton(onPressed: save, child: const Text('Save record')),
+        const SizedBox(height: 16), FilledButton(onPressed: save, style: FilledButton.styleFrom(minimumSize: biggerTextButtonsEnabled ? const Size.fromHeight(52) : null), child: const Text('Save record')),
       ]),
     );
   }

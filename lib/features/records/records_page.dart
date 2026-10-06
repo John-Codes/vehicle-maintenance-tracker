@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/large_display.dart';
 import '../../core/cold_start_notice.dart';
 import '../editor/record_editor_page.dart';
 import 'records_repository.dart';
@@ -29,7 +30,7 @@ class _RecordsPageState extends State<RecordsPage> {
         direction: DismissDirection.endToStart,
         background: Container(alignment: Alignment.centerRight, padding: const EdgeInsets.only(right: 20), color: Colors.red, child: const Icon(Icons.delete, color: Colors.white)),
         confirmDismiss: (_) async { await confirmDelete(r); return false; },
-        child: ListTile(
+        child: ListTile(minVerticalPadding: biggerTextButtonsEnabled ? 12 : null, contentPadding: biggerTextButtonsEnabled ? const EdgeInsets.symmetric(horizontal: 20, vertical: 8) : null,
           title: Text(r.vehicleNumber.isEmpty ? 'New service record' : r.vehicleNumber), subtitle: Text('${r.dateStarted.split('T').first} · $done/${r.steps.length} complete'),
           trailing: Row(mainAxisSize: MainAxisSize.min, children: [
             IconButton(icon: const Icon(Icons.delete_outline, color: Colors.red), onPressed: () => confirmDelete(r)),
