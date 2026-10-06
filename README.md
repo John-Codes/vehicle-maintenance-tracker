@@ -27,6 +27,38 @@ Flutter Web (port 3000)
 | Backend API | FastAPI / Python | `backend/` |
 | MongoDB Storage | FastAPI + Motor | External service |
 
+## Maintenance schedule contract
+
+Every service record stores a `schedule`. There is no flat `steps` list. Flutter enforces this with `MaintenanceSchedule` in `lib/features/maintenance_lists/maintenance_schedule.dart`. The backend schema requires the same three keys and rejects a record that omits one.
+
+```json
+{
+  "schedule": {
+    "daily": {
+      "last_done_at": "",
+      "components": [
+        {
+          "id": "engine",
+          "title": "Engine",
+          "steps": [
+            {"id": "d-oil", "title": "Oil level", "done": false, "not_applicable": false, "value": "", "notes": "", "description": ""}
+          ]
+        }
+      ]
+    },
+    "weekly": {"last_done_at": "", "components": []},
+    "monthly": {"last_done_at": "", "components": []}
+  }
+}
+```
+
+- `daily`, `weekly`, and `monthly` are required.
+- `last_done_at` is `YYYY-MM-DD` or `""`. Empty means never.
+- Each frequency holds component lists. A service type repeats the same component ids in all three frequencies.
+- A component holds leaf steps only. A step has `id`, `title`, `done`, `not_applicable`, `value`, `notes`, and `description`.
+- Step ids are unique across the whole schedule.
+- The inspection UI shows Daily, Weekly, and Monthly collapsed, each with last done or Never.
+
 ## Getting Started
 
 ### Prerequisites

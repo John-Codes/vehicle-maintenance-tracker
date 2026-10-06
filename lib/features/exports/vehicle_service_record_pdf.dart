@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import '../maintenance_lists/schedule_checklist.dart';
 import '../records/service_record.dart';
 
 enum ItemStatus { yes, no }
@@ -31,11 +32,11 @@ class VehicleServiceRecordPdf {
     final baseStyle = pw.TextStyle(fontSize: 9.5, color: _textGrey);
     final boldStyle = baseStyle.copyWith(fontWeight: pw.FontWeight.bold);
     final serviceDate = DateTime.tryParse(r.dateStarted) ?? DateTime.now();
-    final items = r.steps.map((s) => ChecklistItem(
-      item: s.title,
-      status: s.done ? ItemStatus.yes : ItemStatus.no,
-      value: s.value,
-      notes: s.notes,
+    final items = scheduleChecklist(r.schedule).map((row) => ChecklistItem(
+      item: row.item,
+      status: row.step.done ? ItemStatus.yes : ItemStatus.no,
+      value: row.step.value,
+      notes: row.step.notes,
     )).toList();
     final nextSteps = r.nextSteps.split('\n').where((s) => s.trim().isNotEmpty).toList();
 
