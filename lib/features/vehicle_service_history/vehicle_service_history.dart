@@ -1,11 +1,14 @@
 import '../records/check_step.dart';
-class LastServiceInfo { final bool has; final String date; final List<CheckStep> steps; const LastServiceInfo(this.has,{this.date='',this.steps=const[]}); }
+class LastServiceInfo { final bool hasLastService; final String lastServiceDate; final List<CheckStep> lastServiceSteps; const LastServiceInfo(this.hasLastService,{this.lastServiceDate='',this.lastServiceSteps=const[]}); }
 class VehicleServiceHistory {
-  static LastServiceInfo findLast(List<dynamic> recs,String v){
-    if(recs.isEmpty||v.isEmpty)return LastServiceInfo(false);
-    final vn=v.trim().toLowerCase();
-    for(final r in recs){
-      try{ final rn=(r.vehicleNumber??r.vehicle_number??'').toString().toLowerCase().trim(); if(rn==vn){ final d=(r.dateStarted??r.date_started??'').toString(); return LastServiceInfo(true,date:d,steps:r.steps??[]);} }catch(_){}
+  static LastServiceInfo findLastServiceForUnit(List<dynamic> allRecords,String vehicleNumber){
+    if(allRecords.isEmpty||vehicleNumber.trim().isEmpty)return LastServiceInfo(false);
+    final unit=vehicleNumber.trim().toLowerCase();
+    for(final record in allRecords){
+      try{
+        final recordVehicle=(record.vehicleNumber??record.vehicle_number??'').toString().trim().toLowerCase();
+        if(recordVehicle==unit)return LastServiceInfo(true,lastServiceDate:(record.dateStarted??record.date_started??'').toString(),lastServiceSteps:record.steps??[]);
+      }catch(_){}
     }
     return LastServiceInfo(false);
   }
