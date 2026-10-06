@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../features/profile/settings_page.dart';
 import '../features/records/records_page.dart';
 
-final themeNotifier = ValueNotifier<ThemeMode>(ThemeMode.light);
+final themeNotifier = ValueNotifier<ThemeMode>(ThemeMode.dark);
 
 class TrackerApp extends StatelessWidget {
   const TrackerApp({super.key});
