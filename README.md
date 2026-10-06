@@ -141,9 +141,23 @@ All endpoints except `/health` require the `X-App-Key` header.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `MONGO_STORE_URL` | `http://127.0.0.1:8002` | MongoDB storage API URL |
+| `MONGO_URI` | *(empty)* | MongoDB Atlas connection string |
+| `DB_NAME` | `mystore` | MongoDB database name |
+| `COLLECTION` | `items` | MongoDB collection for all records |
 | `APP_API_KEY` | `change-me` | API key for authentication |
 | `CORS_ALLOWED_ORIGINS` | `*` | Comma-separated allowed origins |
+
+## Branch Update Workflow
+
+Every change follows this workflow. **Tests are always real end-to-end (real backend, real database, real HTTP) — never mocked or faked.**
+
+1. **Branch** off `main` (branches are never deleted)
+2. **Implement** — each file under 100 lines, one feature per folder, SRP, clear names (see `BRANCH_UPDATE_RULES.md`)
+3. **Local end-to-end tests pass** (real API round-trips, real database writes, `flutter build` clean)
+4. **Push branch, open a PR**
+5. **Merge the PR** to `main`
+6. **Build + push the Docker image(s), deploy to Render**
+7. **Run the same tests against production** — a change is only "shipped" when prod passes the same end-to-end tests
 
 ## License
 
