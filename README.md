@@ -219,3 +219,35 @@ Local review and CI always point at a local/throwaway MongoDB. Production points
 ## License
 
 [MIT](LICENSE)
+
+## Manage service types
+
+Open **Settings → Manage service types** to add, edit, or delete a service type.
+Each type saves its name and complete Daily/Weekly/Monthly template, including
+components and their child items (title, instructions, readings, and notes).
+Components are shared across the three frequencies; items belong to one frequency.
+Use **Add todo** inside a component to open a bounded editor for the title,
+instructions, readings, and notes. Each saved todo has explicit Edit and Delete
+buttons; long titles stay on one line in the list.
+Choose a saved type in the record editor to copy its checklist. Completion flags
+and last-done dates start fresh. Existing records retain their saved names and
+checklists when a type is renamed or deleted.
+
+`/service-types` supports GET and POST; `/service-types/{id}` supports GET, PUT,
+and DELETE. These new endpoints do not require authentication. Existing endpoint
+behavior is unchanged. Types are stored in the `service_types` MongoDB collection.
+The five built-in templates initialize on backend startup; deleted defaults stay
+deleted. Names must be nonblank and unique without regard to case.
+
+The isolated review stack defaults to API port 8021, web port 8092, and MongoDB
+port 27027 with container `chat-gpt-tracker-mongo`. Override `API_PORT`, `WEB_PORT`,
+`MONGO_PORT`, or `MONGO_CONTAINER` if needed. It does not stop other agents' servers.
+Run `sh scripts/local_stack.sh`; its e2e suite includes full child-item persistence,
+service-type CRUD, invalid input, and historical-record preservation against the
+local database. Logs are in `/tmp/chat-gpt-tracker-logs`.
+
+Browser regression: install Playwright in the backend venv, then run
+`backend/.venv/bin/python backend/e2e_service_types_browser.py` with the local
+review stack running. Set `BROWSER_WIDTH=390` to check the phone layout.
+The test uses real Chrome, HTTP, and MongoDB to add multiple todos, edit them,
+reload their saved fields, add another todo, and delete its test service type.

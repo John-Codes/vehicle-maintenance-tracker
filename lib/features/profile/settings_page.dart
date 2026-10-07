@@ -4,6 +4,7 @@ import '../../core/cold_start_notice.dart';
 import '../../core/large_display.dart';
 import 'profile_repository.dart';
 import 'technician.dart';
+import '../service_types/service_types_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -47,8 +48,20 @@ class _SettingsPageState extends State<SettingsPage> {
           onChanged: (value) => saveBiggerTextButtonsSetting(value),
         ),
       ),
-      const SizedBox(height: 12),
-      FilledButton(onPressed: _save, child: const Text('Save settings')),
+      const SizedBox(height: 24),
+      OutlinedButton.icon(
+        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ServiceTypesPage())),
+        style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48), padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14)),
+        icon: const Icon(Icons.category_outlined),
+        label: const Text('Manage service types'),
+      ),
+      const SizedBox(height: 20),
+      FilledButton(
+        onPressed: _save,
+        style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48), padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14)),
+        child: const Text('Save settings'),
+      ),
+      const SizedBox(height: 24),
     ]),
   );
 }

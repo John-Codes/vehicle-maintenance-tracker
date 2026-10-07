@@ -1,0 +1,80 @@
+"""Browser e2e against a running isolated local review stack; requires Playwright."""
+import os
+import uuid
+from playwright.sync_api import sync_playwright, expect
+
+NAME = 'Browser-' + uuid.uuid4().hex[:8]
+
+def fill(page, name, value):
+    field = page.get_by_role('textbox', name=name, exact=True)
+    field.click()
+    page.wait_for_timeout(200)
+    field.press('Control+a')
+    field.press_sequentially(value, delay=10)
+
+def run(page):
+    page.goto(os.environ.get('REVIEW_URL', 'http://127.0.0.1:8092'))
+    page.locator('flt-semantics-placeholder').evaluate('(element) => element.click()')
+    page.get_by_role('tab', name='Settings').click()
+    page.get_by_role('button', name='Manage service types').click()
+    page.get_by_role('button', name='Add service type').click()
+    fill(page, 'Service type name', NAME)
+    page.get_by_role('button', name='Add component').click()
+    fill(page, 'Component name', 'Engine')
+    page.get_by_role('button', name='Save', exact=True).click()
+    expect(page.get_by_role('alertdialog')).to_have_count(0)
+    page.get_by_role('button', name='Daily', exact=True).click()
+    page.get_by_role('button', name='Engine', exact=True).click()
+    for title in ['Oil level', 'Brake inspection', 'Long title ' + 'x' * 109]:
+        page.get_by_role('button', name='Add todo', exact=True).click()
+        fill(page, 'Todo title', title)
+        fill(page, 'Instructions / description', 'Check before starting')
+        fill(page, 'Location/Measurement/Readings', '15 psi')
+        fill(page, 'Notes', 'Keep these child fields')
+        page.get_by_role('button', name='Save todo', exact=True).click()
+        expect(page.get_by_role('alertdialog')).to_have_count(0)
+    expect(page.get_by_role('button', name='Edit todo', exact=True)).to_have_count(3)
+    page.screenshot(path='/tmp/tracker-todos-fixed.png')
+    page.get_by_role('button', name='Edit todo', exact=True).first.click()
+    fill(page, 'Todo title', 'Oil level updated')
+    page.get_by_role('button', name='Save todo', exact=True).click()
+    expect(page.get_by_role('alertdialog')).to_have_count(0)
+    page.get_by_role('button', name='Save service type', exact=True).click()
+    page.get_by_role('button', name=NAME, exact=False).wait_for()
+    page.reload()
+    page.locator('flt-semantics-placeholder').evaluate('(element) => element.click()')
+    page.get_by_role('tab', name='Settings').click()
+    page.get_by_role('button', name='Manage service types').click()
+    page.get_by_role('button', name=NAME, exact=False).click()
+    page.get_by_role('button', name='Daily', exact=True).click()
+    page.get_by_role('button', name='Engine', exact=True).click()
+    expect(page.get_by_role('button', name='Edit todo', exact=True)).to_have_count(3)
+    page.get_by_role('button', name='Edit todo', exact=True).first.click()
+    expect(page.get_by_role('textbox', name='Todo title', exact=True)).to_have_value('Oil level updated')
+    page.get_by_role('textbox', name='Notes', exact=True).click()
+    expect(page.get_by_role('textbox', name='Notes', exact=True)).to_have_value('Keep these child fields')
+    page.get_by_role('textbox', name='Location/Measurement/Readings', exact=True).click()
+    expect(page.get_by_role('textbox', name='Location/Measurement/Readings', exact=True)).to_have_value('15 psi')
+    page.get_by_role('button', name='Cancel', exact=True).click()
+    page.get_by_role('button', name='Add todo', exact=True).click()
+    fill(page, 'Todo title', 'Fourth todo after reopening')
+    page.get_by_role('button', name='Save todo', exact=True).click()
+    expect(page.get_by_role('button', name='Edit todo', exact=True)).to_have_count(4)
+    page.get_by_role('button', name='Delete todo', exact=True).last.click()
+    page.get_by_role('button', name='Save service type', exact=True).click()
+    page.get_by_role('button', name=NAME, exact=False).wait_for()
+    page.get_by_role('button', name=NAME, exact=False).get_by_role('button', name='Delete', exact=True).click()
+    page.get_by_role('button', name='Delete', exact=True).last.click()
+    expect(page.get_by_role('button', name=NAME, exact=False)).to_have_count(0)
+    print('PASS: three todos, bounded long title, all child fields, edit, save, reload, add again, delete', flush=True)
+
+with sync_playwright() as p:
+    browser = p.chromium.launch(executable_path='/usr/bin/google-chrome', headless=True, args=['--no-sandbox'])
+    page = browser.new_page(viewport={'width': int(os.environ.get('BROWSER_WIDTH', '1280')), 'height': 1000})
+    page.on('pageerror', lambda error: print('BROWSER ERROR:', error, flush=True))
+    try:
+        run(page)
+    finally:
+        print(page.locator('body').aria_snapshot(), flush=True)
+        page.screenshot(path='/tmp/tracker-todo-browser.png')
+        browser.close()
