@@ -5,6 +5,7 @@ import urllib.error
 import urllib.request
 
 import e2e_search
+import e2e_step_fields
 
 BASE = os.environ['API_URL'].rstrip('/')
 KEY = os.environ['APP_API_KEY']
@@ -45,6 +46,7 @@ def main():
     assert all(item['id'] != created['id'] for item in listed)
     print('e2e ok')
     e2e_search.main()
+    e2e_step_fields.main()
 
 if __name__ == '__main__':
     main()
