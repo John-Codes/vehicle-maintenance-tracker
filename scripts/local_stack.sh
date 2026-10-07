@@ -31,13 +31,14 @@ if curl -sf http://127.0.0.1:$API_PORT/health >/dev/null; then
 fi
 ( cd backend && MONGO_URI=mongodb://127.0.0.1:$MONGO_PORT DB_NAME=chat_gpt_tracker_local COLLECTION=items \
   APP_API_KEY="$KEY" CORS_ALLOWED_ORIGINS='*' \
+  OPENROUTER_API_KEY="${OPENROUTER_API_KEY:-}" CHAT_MODEL="${CHAT_MODEL:-nvidia/nemotron-3.5-lightning:free}" \
   exec setsid ../backend/.venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port $API_PORT ) > "$LOG_DIR/local-api.log" 2>&1 < /dev/null &
 echo $! > "$LOG_DIR/api.pid"
 for i in $(seq 1 30); do curl -sf http://127.0.0.1:$API_PORT/health >/dev/null && break; sleep 2; done
 curl -sf http://127.0.0.1:$API_PORT/health >/dev/null || { echo "backend failed:"; tail -20 "$LOG_DIR/local-api.log"; exit 1; }
 
 echo "== e2e against local DB =="
-API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" backend/.venv/bin/python backend/e2e_schedule.py
+API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" OPENROUTER_API_KEY="${OPENROUTER_API_KEY:-}" backend/.venv/bin/python backend/e2e_schedule.py
 
 echo "== building web (API http://$IP:$API_PORT) =="
 flutter build web --release --dart-define=API_URL=http://$IP:$API_PORT --dart-define=API_KEY="$KEY" >/dev/null

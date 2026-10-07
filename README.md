@@ -11,6 +11,7 @@ A full-stack vehicle service record management app built with **Flutter** (front
 - **XLSX Export** — Spreadsheet export with summary and checklist tabs
 - **Dark Mode** — Toggle between light and dark themes
 - **Swipe to Delete** — Swipe or tap to delete records with confirmation
+- **AI Chat** — Chat tab that answers questions about your service records (OpenRouter, server-side key)
 
 ## Architecture
 
@@ -178,6 +179,7 @@ backend/
 | `GET` | `/service-records/{id}` | Get a service record |
 | `PUT` | `/service-records/{id}` | Update a service record |
 | `DELETE` | `/service-records/{id}` | Delete a service record |
+| `POST` | `/chat` | Ask the AI assistant about service records |
 
 All endpoints except `/health` require the `X-App-Key` header.
 
@@ -189,6 +191,8 @@ All endpoints except `/health` require the `X-App-Key` header.
 | `DB_NAME` | `mystore` | MongoDB database name |
 | `COLLECTION` | `items` | MongoDB collection for all records |
 | `APP_API_KEY` | `change-me` | API key for authentication |
+| `OPENROUTER_API_KEY` | *(empty)* | OpenRouter key for AI chat (server-side only; unset → `/chat` returns 503) |
+| `CHAT_MODEL` | `nvidia/nemotron-3.5-lightning:free` | OpenRouter model id used by `/chat` |
 | `CORS_ALLOWED_ORIGINS` | `*` | Comma-separated allowed origins |
 
 ## Branch Update Workflow
@@ -213,6 +217,7 @@ Public repo — all credentials live in GitHub encrypted secrets, never in code:
 | `DOCKERHUB_USERNAME` / `DOCKERHUB_TOKEN` | Push images to Docker Hub |
 | `RENDER_API_KEY` | Trigger and watch Render deploys |
 | `PROD_API_URL` / `PROD_API_KEY` | Bake prod API config into the web image; run prod e2e |
+| `OPENROUTER_API_KEY` | Enables the real LLM round-trip in the chat e2e; CI skips it when unset |
 
 Local review and CI always point at a local/throwaway MongoDB. Production points at the prod MongoDB via Render's configured `MONGO_URI` — the pipeline never supplies a DB connection at deploy time.
 
@@ -251,3 +256,31 @@ Browser regression: install Playwright in the backend venv, then run
 review stack running. Set `BROWSER_WIDTH=390` to check the phone layout.
 The test uses real Chrome, HTTP, and MongoDB to add multiple todos, edit them,
 reload their saved fields, add another todo, and delete its test service type.
+
+## AI Chat
+
+The **Chat** tab (between Records and Settings) is a Markdown-capable AI
+assistant backed by the backend `POST /chat` endpoint. The server loads the
+latest service records from MongoDB, compresses them into a JSON brief (up to
+the newest 50 records; checklist progress, notes, and next steps included) and
+sends it as system context to **OpenRouter** — the key lives only on the server.
+
+The assistant can also call backend tools to work with the data: search, list,
+get, create, update, and delete service records, and list, get, create, update,
+and delete service types. It decides when to call a tool and follows up with the
+real results, so queries like "find the record about quokka" or "add a service
+type named Oil Change" work against the live database.
+
+Client behavior:
+
+- Conversation history stays in the browser and is sent on each request (last 20 messages).
+- Enter sends, Shift+Enter makes a newline.
+- Assistant replies render as Markdown; a copy button is on each assistant bubble.
+- Tracker theme applies (dark mode, bigger-text setting respected).
+
+Endpoint behavior:
+
+- Requires `X-App-Key` like all other endpoints (401 without it).
+- `message` is required (422 if blank); `history` is an optional list of `{role, content}`.
+- Without a server-side `OPENROUTER_API_KEY`, `/chat` returns 503 `Chat is not configured`.
+- With a key, a real OpenRouter completion is returned as `{reply: "..."}` (502 on upstream failure).
