@@ -20,6 +20,8 @@ class _ServiceTypePickerState extends State<ServiceTypePicker> {
     } catch (e) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not load service types: $e'))); }
     finally { if (mounted) setState(() => loading = false); }
   }
-  @override Widget build(BuildContext context) => OutlinedButton.icon(onPressed: loading ? null : choose,
-    icon: const Icon(Icons.list_alt), label: Text(loading ? 'Loading service types…' : 'Choose service type'));
+  @override Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 12),
+    child: OutlinedButton.icon(onPressed: loading ? null : choose,
+      icon: const Icon(Icons.list_alt), label: Text(loading ? 'Loading service types…' : 'Choose service type')));
 }
