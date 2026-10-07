@@ -63,4 +63,5 @@ jobs:
         env:
           API_URL: ${{ secrets.PROD_API_URL }}
           APP_API_KEY: ${{ secrets.PROD_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: python backend/e2e_schedule.py
