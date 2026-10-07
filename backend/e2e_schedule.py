@@ -4,6 +4,8 @@ import sys
 import urllib.error
 import urllib.request
 
+import e2e_search
+
 BASE = os.environ['API_URL'].rstrip('/')
 KEY = os.environ['APP_API_KEY']
 
@@ -42,6 +44,7 @@ def main():
     _, listed = call('GET', '/service-records')
     assert all(item['id'] != created['id'] for item in listed)
     print('e2e ok')
+    e2e_search.main()
 
 if __name__ == '__main__':
     main()

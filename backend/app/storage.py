@@ -1,3 +1,5 @@
+import re
+
 from bson import ObjectId
 from fastapi import HTTPException
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -30,6 +32,21 @@ class Store:
 
     async def list(self, record_type):
         cursor = self._collection.find({'record_type': record_type}).sort('created_at', -1).limit(5000)
+        return [_to_item(doc) for doc in await cursor.to_list(length=5000)]
+
+    async def search(self, record_type, text):
+        escaped = re.escape(text)
+        query = {'record_type': record_type, '$or': [
+            {'vehicle_number': {'$regex': escaped, '$options': 'i'}},
+            {'service_type': {'$regex': escaped, '$options': 'i'}},
+            {'vin': {'$regex': escaped, '$options': 'i'}},
+            {'license_plate': {'$regex': escaped, '$options': 'i'}},
+            {'notes': {'$regex': escaped, '$options': 'i'}},
+            {'next_steps': {'$regex': escaped, '$options': 'i'}},
+            {'technician.name': {'$regex': escaped, '$options': 'i'}},
+            {'worker_names': {'$regex': escaped, '$options': 'i'}},
+        ]}
+        cursor = self._collection.find(query).sort('created_at', -1).limit(5000)
         return [_to_item(doc) for doc in await cursor.to_list(length=5000)]
 
     async def get(self, item_id):
