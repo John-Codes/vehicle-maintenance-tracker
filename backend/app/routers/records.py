@@ -8,7 +8,9 @@ from ..storage import store
 router = APIRouter(prefix='/service-records', dependencies=[Depends(require_key)])
 
 @router.get('')
-async def list_records():
+async def list_records(search: str = ''):
+    if search.strip():
+        return await store.search('service_record', search.strip())
     return await store.list('service_record')
 
 @router.post('')

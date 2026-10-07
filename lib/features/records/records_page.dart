@@ -1,15 +1,23 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../core/large_display.dart';
 import '../../core/cold_start_notice.dart';
 import '../editor/record_editor_page.dart';
+import 'record_search_bar.dart';
 import 'records_repository.dart';
 import 'service_record.dart';
 
 class RecordsPage extends StatefulWidget { const RecordsPage({super.key}); @override State<RecordsPage> createState() => _RecordsPageState(); }
 class _RecordsPageState extends State<RecordsPage> {
   final repo = RecordsRepository(); late Future<List<ServiceRecord>> records;
+  final searchTextController = TextEditingController(); Timer? searchDebounce; String searchText = '';
   @override void initState() { super.initState(); records = repo.list(); }
-  void refresh() => setState(() => records = repo.list());
+  @override void dispose() { searchDebounce?.cancel(); searchTextController.dispose(); super.dispose(); }
+  void refresh() => setState(() => records = repo.list(search: searchText));
+  void onSearchChanged(String text) {
+    searchDebounce?.cancel();
+    searchDebounce = Timer(const Duration(milliseconds: 300), () => setState(() { searchText = text; records = repo.list(search: searchText); }));
+  }
   Future<void> create() async { final record = await repo.create(); if (mounted) { await Navigator.push(context, MaterialPageRoute(builder: (_) => RecordEditorPage(record: record))); refresh(); } }
   Future<void> confirmDelete(ServiceRecord r) async {
     final yes = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
@@ -21,10 +29,12 @@ class _RecordsPageState extends State<RecordsPage> {
   }
   @override Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('Service records')),
-    body: FutureBuilder<List<ServiceRecord>>(future: records, builder: (_, snap) {
+    body: Column(children: [
+      RecordSearchBar(controller: searchTextController, onChanged: onSearchChanged),
+      Expanded(child: FutureBuilder<List<ServiceRecord>>(future: records, builder: (_, snap) {
       if (snap.connectionState != ConnectionState.done) return const ColdStartNotice();
       if (snap.hasError) return Center(child: Text('Could not load records\n${snap.error}\nIf the free-tier database was asleep, try again.', textAlign: TextAlign.center));
-      if (snap.data!.isEmpty) return const Center(child: Text('Start your first service record.'));
+      if (snap.data!.isEmpty) return Center(child: Text(searchText.isEmpty ? 'Start your first service record.' : 'No records match "$searchText".'));
       return ListView.builder(itemCount: snap.data!.length, itemBuilder: (_, i) { final r = snap.data![i]; final leaves = r.schedule.leaves; final done = leaves.where((x) => x.done).length;       return Dismissible(
         key: ValueKey(r.id),
         direction: DismissDirection.endToStart,
@@ -38,7 +48,8 @@ class _RecordsPageState extends State<RecordsPage> {
           ]),
           onTap: () async { await Navigator.push(context, MaterialPageRoute(builder: (_) => RecordEditorPage(record: r))); refresh(); }),
       ); });
-    }),
+      })),
+    ]),
     floatingActionButton: FloatingActionButton.extended(onPressed: create, icon: const Icon(Icons.add), label: const Text('New record')),
   );
 }
