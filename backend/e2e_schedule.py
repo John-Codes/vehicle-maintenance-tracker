@@ -5,6 +5,7 @@ import urllib.error
 import urllib.request
 
 import e2e_search
+import e2e_step_fields
 
 BASE = os.environ['API_URL'].rstrip('/')
 KEY = os.environ['APP_API_KEY']
@@ -47,6 +48,7 @@ def main():
     e2e_search.main()
     import e2e_service_types
     e2e_service_types.main()
+    e2e_step_fields.main()
 
 if __name__ == '__main__':
     main()
