@@ -45,6 +45,8 @@ def main():
     assert all(item['id'] != created['id'] for item in listed)
     print('e2e ok')
     e2e_search.main()
+    import e2e_service_types
+    e2e_service_types.main()
 
 if __name__ == '__main__':
     main()

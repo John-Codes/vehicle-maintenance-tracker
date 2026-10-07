@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import '../../core/large_display.dart';
 import '../exports/export_service.dart';
 import '../maintenance_lists/inspection_lists.dart';
-import '../maintenance_lists/schedule_templates.dart';
+import '../service_types/service_type.dart';
+import '../service_types/template_changes.dart';
 import '../records/records_repository.dart';
 import '../records/service_record.dart';
 import '../vehicle_service_history/vehicle_service_history.dart';
@@ -54,12 +55,12 @@ class _RecordEditorPageState extends State<RecordEditorPage> {
     record = await repo.save(values());
     if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Saved')));
   }
-  Future<void> applyServiceType(String type) async {
+  Future<void> applyServiceType(ServiceType type) async {
     final hasSteps = record.schedule.leaves.isNotEmpty;
     var replace = !hasSteps;
     if (hasSteps) {
       final confirmed = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
-            title: Text('Use $type schedule?'),
+            title: Text('Use ${type.name} schedule?'),
             content: const Text('Replace the current checklist with that service type?'),
             actions: [
               TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
@@ -70,8 +71,8 @@ class _RecordEditorPageState extends State<RecordEditorPage> {
     }
     if (!replace) return;
     setState(() {
-      service.text = type;
-      record = record.copyWith(serviceType: type, schedule: ScheduleTemplates.forType(type));
+      service.text = type.name;
+      record = record.copyWith(serviceType: type.name, schedule: freshTemplate(type.schedule));
     });
   }
   LastServiceInfo get lastService => VehicleServiceHistory.findLastServiceForUnit(allRecords.where((r) => r.id != record.id).toList(), vehicle.text);
