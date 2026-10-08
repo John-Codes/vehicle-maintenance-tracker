@@ -24,4 +24,5 @@ ServiceRecord buildRecordValues(
       workerNames: workers.text.split(',').map((x) => x.trim()).where((x) => x.isNotEmpty).toList(),
       notes: notes.text,
       nextSteps: next.text,
+      technician: record.technician,
     );
