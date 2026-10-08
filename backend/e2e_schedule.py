@@ -49,6 +49,8 @@ def main():
     import e2e_service_types
     e2e_service_types.main()
     e2e_step_fields.main()
+    import e2e_checklist
+    e2e_checklist.main()
     import e2e_chat
     e2e_chat.main()
 

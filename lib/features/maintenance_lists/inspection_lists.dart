@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import '../../core/large_display.dart';
+import '../checklist_history/checklist_history.dart';
 import 'component_block.dart';
+import 'frequency_row.dart';
 import 'maintenance_schedule.dart';
 import 'schedule_edit.dart';
 
 class InspectionLists extends StatefulWidget {
   final MaintenanceSchedule schedule;
   final ValueChanged<MaintenanceSchedule> onChanged;
-  const InspectionLists({super.key, required this.schedule, required this.onChanged});
+  final VoidCallback onCommitted;
+  const InspectionLists({super.key, required this.schedule, required this.onChanged, required this.onCommitted});
   @override
   State<InspectionLists> createState() => _InspectionListsState();
 }
@@ -24,10 +27,15 @@ class _InspectionListsState extends State<InspectionLists> {
     });
   }
 
-  void mark(String id, FrequencyList list) {
-    write(id, markFrequencyDone(list));
-    setState(() => openId = null);
-  }
+  Future<void> mark(String id, FrequencyList list) => ChecklistHistory.markFrequency(
+      list: list, write: (l) => write(id, l), onCommitted: widget.onCommitted);
+
+  void clear(String id, FrequencyList list) => ChecklistHistory.clearFrequency(
+      list: list, write: (l) => write(id, l), onCommitted: widget.onCommitted);
+
+  Future<void> toggleComponent(String id, FrequencyList list, String componentId, bool done) =>
+      ChecklistHistory.toggleComponent(
+          list: list, componentId: componentId, done: done, write: (l) => write(id, l), onCommitted: widget.onCommitted);
 
   @override
   Widget build(BuildContext context) => Column(children: [
@@ -38,17 +46,20 @@ class _InspectionListsState extends State<InspectionLists> {
 
   Widget _row(String id, String label, FrequencyList list) {
     final open = openId == id;
-    final last = list.lastDoneAt.isEmpty ? 'Never' : list.lastDoneAt.split('T').first;
     return Column(children: [
-      ListTile(
-        leading: Checkbox(
-          value: list.markedDone,
-          onChanged: (v) => v == true ? mark(id, list) : write(id, clearFrequencyDone(list)),
-        ),
-        title: Text(label),
-        subtitle: Text('Last done: $last'),
-        trailing: Icon(open ? Icons.expand_less : Icons.expand_more),
+      FrequencyRow(
+        id: id,
+        label: label,
+        list: list,
+        open: open,
         onTap: () => setState(() => openId = open ? null : id),
+        onCheck: (v) {
+          if (v) {
+            mark(id, list);
+          } else {
+            clear(id, list);
+          }
+        },
       ),
       if (open) ...[
         Align(
@@ -69,7 +80,8 @@ class _InspectionListsState extends State<InspectionLists> {
             onStep: (step) => write(id, replaceStep(list, component.id, step)),
             onDelete: (stepId) => write(id, deleteStep(list, component.id, stepId)),
             onAdd: () => write(id, addStep(list, component.id)),
-            onToggle: (done) => write(id, markComponentDone(list, component.id, done)),
+            onToggle: (done) => toggleComponent(id, list, component.id, done),
+            onCommitted: widget.onCommitted,
           ),
       ],
     ]);

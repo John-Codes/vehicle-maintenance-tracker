@@ -21,7 +21,7 @@ class _ServiceTypePickerState extends State<ServiceTypePicker> {
     finally { if (mounted) setState(() => loading = false); }
   }
   @override Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 12),
+    padding: const EdgeInsets.only(top: 32, bottom: 12),
     child: OutlinedButton.icon(onPressed: loading ? null : choose,
       icon: const Icon(Icons.list_alt), label: Text(loading ? 'Loading service types…' : 'Choose service type')));
 }
