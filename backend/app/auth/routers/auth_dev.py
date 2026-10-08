@@ -13,7 +13,8 @@ router = APIRouter(prefix='/auth', tags=['Auth dev'])
 async def dev_token(body: DevTokenRequest, x_app_key: str = Header(default='')):
     """Local/CI-only fast path: issue a real tracker token without Firebase.
 
-    Enabled only when AUTH_MODE=dev. Never enable in production.
+    Enabled only when AUTH_MODE=dev. Never enable in production. Omitting
+    role and workspace_id applies the same auto-assign logic as /auth/firebase.
     """
     if AUTH_MODE != 'dev':
         raise HTTPException(404, 'Not found')

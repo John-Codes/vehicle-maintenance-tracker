@@ -1,11 +1,12 @@
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
-from ..auth.session import Principal, require_user
+from ..auth.guards import require_workspace_user
+from ..auth.session import Principal
 from ..defaults import empty_schedule, step_ids
 from ..schemas import ServiceRecord, Technician
 from ..storage import store
 
-router = APIRouter(prefix='/service-records', dependencies=[Depends(require_user)])
+router = APIRouter(prefix='/service-records', dependencies=[Depends(require_workspace_user)])
 
 
 def effective_workspace(doc):
@@ -28,7 +29,7 @@ async def _populate_technician(item: dict) -> dict:
     return item
 
 @router.get('')
-async def list_records(search: str = '', principal: Principal = Depends(require_user)):
+async def list_records(search: str = '', principal: Principal = Depends(require_workspace_user)):
     workspace = principal.workspace_id
     if search.strip():
         records = await store.search('service_record', search.strip(), workspace)
@@ -37,7 +38,7 @@ async def list_records(search: str = '', principal: Principal = Depends(require_
     return [await _populate_technician(r) for r in records]
 
 @router.post('')
-async def create_record(principal: Principal = Depends(require_user)):
+async def create_record(principal: Principal = Depends(require_workspace_user)):
     profiles = await store.list('technician_profile')
     record = ServiceRecord(
         date_started=now(),
@@ -50,7 +51,7 @@ async def create_record(principal: Principal = Depends(require_user)):
 
 
 @router.get('/{item_id}')
-async def get_record(item_id: str, principal: Principal = Depends(require_user)):
+async def get_record(item_id: str, principal: Principal = Depends(require_workspace_user)):
     item = await store.get(item_id)
     if item.get('record_type') != 'service_record':
         raise HTTPException(404, 'Record not found')
@@ -59,7 +60,7 @@ async def get_record(item_id: str, principal: Principal = Depends(require_user))
 
 
 @router.put('/{item_id}')
-async def update_record(item_id: str, record: ServiceRecord, principal: Principal = Depends(require_user)):
+async def update_record(item_id: str, record: ServiceRecord, principal: Principal = Depends(require_workspace_user)):
     ids = step_ids(record.schedule)
     if len(set(ids)) != len(ids):
         raise HTTPException(422, 'Step IDs must be unique')
@@ -73,7 +74,9 @@ async def update_record(item_id: str, record: ServiceRecord, principal: Principa
 
 
 @router.delete('/{item_id}', status_code=204)
-async def delete_record(item_id: str, principal: Principal = Depends(require_user)):
+async def delete_record(item_id: str, principal: Principal = Depends(require_workspace_user)):
+    if not principal.is_legacy and principal.role != 'manager':
+        raise HTTPException(403, 'Only managers can delete records')
     existing = await store.get(item_id)
     if existing.get('record_type') != 'service_record':
         raise HTTPException(404, 'Record not found')

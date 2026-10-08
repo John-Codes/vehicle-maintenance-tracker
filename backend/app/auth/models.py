@@ -10,18 +10,20 @@ class FirebaseExchange(BaseModel):
 class DevTokenRequest(BaseModel):
     email: EmailStr
     name: str = ''
-    role: str = Field(default='technician', pattern='^(admin|manager|technician)$')
-    workspace_id: str = Field(default='', max_length=80)
+    role: Optional[str] = Field(default=None, pattern='^(manager|tech)$')
+    workspace_id: Optional[str] = Field(default=None, max_length=80)
 
 
-class BootstrapAdminRequest(BaseModel):
-    email: EmailStr
+class RoleChange(BaseModel):
+    role: str = Field(pattern='^(manager|tech)$')
 
 
-class Token(BaseModel):
-    access_token: str
-    token_type: str = 'bearer'
-    user: Optional[dict] = None
+class InviteCreate(BaseModel):
+    role: str = Field(default='tech', pattern='^(manager|tech)$')
+
+
+class InviteRedeem(BaseModel):
+    code: str = Field(min_length=4, max_length=64)
 
 
 class LegacyPrincipalOut(BaseModel):
