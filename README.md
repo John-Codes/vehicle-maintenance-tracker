@@ -6,6 +6,9 @@ A full-stack vehicle service record management app built with **Flutter** (front
 
 - **Service Records** — Create, edit, and delete vehicle inspection records
 - **Inspection Checklist** — Customizable checklist items with done/pending status, values, and notes
+- **Checklist Done History** — Every done toggle stores a `done_at` timestamp and a quiet, append-only `done_history` log in the DB (time + GPS when the browser grants location); the UI only shows the last-done stamp
+- **Due Badges** — Daily/Weekly/Monthly rows stay collapsed and show a red "Due" badge until done in the current period; unchecked items are marked red inside the expanded list
+- **Autosave** — Record editor fields save silently after 1s of inactivity; checklist done events flush immediately; a local draft (shared preferences) is restored and sent to the backend when the editor reopens
 - **Technician Profile** — Store technician name, phone, and email
 - **PDF Export** — Styled PDF reports with branded colors, info tables, and checklist
 - **XLSX Export** — Spreadsheet export with summary and checklist tabs
@@ -42,7 +45,7 @@ Every service record stores a `schedule`. There is no flat `steps` list. Flutter
           "id": "engine",
           "title": "Engine",
           "steps": [
-            {"id": "d-oil", "title": "Oil level", "done": false, "not_applicable": false, "value": "", "notes": "", "description": ""}
+            {"id": "d-oil", "title": "Oil level", "done": false, "not_applicable": false, "done_at": "", "done_history": [], "value": "", "notes": "", "description": ""}
           ]
         }
       ]
@@ -56,9 +59,10 @@ Every service record stores a `schedule`. There is no flat `steps` list. Flutter
 - `daily`, `weekly`, and `monthly` are required.
 - `last_done_at` is `YYYY-MM-DD` or `""`. Empty means never.
 - Each frequency holds component lists. A service type repeats the same component ids in all three frequencies.
-- A component holds leaf steps only. A step has `id`, `title`, `done`, `not_applicable`, `value`, `notes`, and `description`.
+- A component holds leaf steps only. A step has `id`, `title`, `done`, `not_applicable`, `done_at`, `done_history`, `value`, `notes`, and `description`.
+- `done_at` is the ISO timestamp of the last done toggle; `done_history` is an append-only log of `{at, lat, lng, accuracy}` entries (GPS may be null when the browser denies location). Service types never store either field.
 - Step ids are unique across the whole schedule.
-- The inspection UI shows Daily, Weekly, and Monthly collapsed, each with last done or Never.
+- The inspection UI shows Daily, Weekly, and Monthly collapsed, each with last done or Never plus a red "Due" badge when not done in the current period.
 
 ## Getting Started
 

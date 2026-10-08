@@ -6,11 +6,19 @@ class Technician(BaseModel):
     phone: str = ''
     email: str = ''
 
+class DoneEvent(BaseModel):
+    at: str = ''
+    lat: Optional[float] = None
+    lng: Optional[float] = None
+    accuracy: Optional[float] = None
+
 class CheckStep(BaseModel):
     id: str
     title: str = Field(min_length=1, max_length=120)
     done: bool = False
     not_applicable: bool = False
+    done_at: str = ''
+    done_history: list[DoneEvent] = []
     value: str = ''
     notes: str = ''
     description: str = ''

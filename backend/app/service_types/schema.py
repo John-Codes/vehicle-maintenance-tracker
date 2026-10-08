@@ -29,4 +29,10 @@ class ServiceType(BaseModel):
             raise ValueError('Components require an ID and title')
         if any(not s.id.strip() or not s.title.strip() for s in steps):
             raise ValueError('Items require an ID and title')
-        return schedule
+        # Templates never store completion history: strip it so it cannot leak into new records.
+        def clean(group):
+            components = [c.model_copy(update={'steps': [
+                s.model_copy(update={'done_at': '', 'done_history': []}) for s in c.steps]}) for c in group.components]
+            return group.model_copy(update={'components': components})
+        return schedule.model_copy(update={
+            'daily': clean(schedule.daily), 'weekly': clean(schedule.weekly), 'monthly': clean(schedule.monthly)})
