@@ -17,13 +17,24 @@ def _forbid_other_workspaces(doc, principal):
         raise HTTPException(404, 'Record not found')
 
 
+async def _populate_technician(item: dict) -> dict:
+    """Populate technician from profile if empty."""
+    if item.get('record_type') == 'service_record':
+        tech = item.get('technician') or {}
+        if not tech.get('name'):
+            profiles = await store.list('technician_profile')
+            if profiles:
+                item['technician'] = _technician(profiles[0])
+    return item
+
 @router.get('')
 async def list_records(search: str = '', principal: Principal = Depends(require_user)):
     workspace = principal.workspace_id
     if search.strip():
-        return await store.search('service_record', search.strip(), workspace)
-    return await store.list('service_record', workspace)
-
+        records = await store.search('service_record', search.strip(), workspace)
+    else:
+        records = await store.list('service_record', workspace)
+    return [await _populate_technician(r) for r in records]
 
 @router.post('')
 async def create_record(principal: Principal = Depends(require_user)):
@@ -44,7 +55,7 @@ async def get_record(item_id: str, principal: Principal = Depends(require_user))
     if item.get('record_type') != 'service_record':
         raise HTTPException(404, 'Record not found')
     _forbid_other_workspaces(item, principal)
-    return item
+    return await _populate_technician(item)
 
 
 @router.put('/{item_id}')

@@ -62,11 +62,12 @@ class ServiceRecord {
     String? nextSteps,
     String? vin,
     String? licensePlate,
+    Technician? technician,
   }) =>
       ServiceRecord(
         id: id,
         dateStarted: dateStarted,
-        technician: technician,
+        technician: technician ?? this.technician,
         vehicleNumber: vehicleNumber ?? this.vehicleNumber,
         serviceType: serviceType ?? this.serviceType,
         miles: miles ?? this.miles,

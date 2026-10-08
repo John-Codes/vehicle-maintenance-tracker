@@ -43,6 +43,7 @@ dependencies:
   printing: ^5.14.2
   share_plus: ^10.1.4
   firebase_core: ^4.15.0
+  geolocator: ^14.0.2
 
 dev_dependencies:
   flutter_test:

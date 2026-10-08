@@ -28,7 +28,8 @@ def main():
     assert seed, 'Built-in templates were not initialized'
     schedule = {f: {'last_done_at': '', 'components': [{'id': 'engine', 'title': 'Engine',
         'steps': [{'id': f + '-oil', 'title': 'Oil', 'description': 'Check level',
-        'value': 'Dipstick', 'notes': 'Cold engine', 'done': False, 'not_applicable': False}]}]}
+        'value': 'Dipstick', 'notes': 'Cold engine', 'done': False, 'not_applicable': False,
+        'done_at': '', 'done_history': []}]}]}
         for f in ('daily', 'weekly', 'monthly')}
     body = {'name': name, 'schedule': schedule}
     created = call('POST', '/service-types', body, 201)

@@ -8,6 +8,6 @@ MaintenanceSchedule changeComponents(MaintenanceSchedule schedule, String id, St
 }
 MaintenanceSchedule freshTemplate(MaintenanceSchedule schedule) {
   FrequencyList fresh(FrequencyList f) => FrequencyList(components: [for (final c in f.components)
-    c.copyWith(steps: [for (final s in c.steps) s.copyWith(done: false, notApplicable: false)])]);
+    c.copyWith(steps: [for (final s in c.steps) s.copyWith(done: false, notApplicable: false, doneAt: '', doneHistory: const [])])]);
   return MaintenanceSchedule(daily: fresh(schedule.daily), weekly: fresh(schedule.weekly), monthly: fresh(schedule.monthly));
 }

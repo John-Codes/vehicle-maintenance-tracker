@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import '../../core/large_display.dart';
+import '../autosave/autosave_controller.dart';
 import '../exports/export_service.dart';
 import '../maintenance_lists/inspection_lists.dart';
+import '../maintenance_lists/maintenance_schedule.dart';
 import '../service_types/service_type.dart';
 import '../service_types/template_changes.dart';
 import '../records/records_repository.dart';
 import '../records/service_record.dart';
 import '../vehicle_service_history/vehicle_service_history.dart';
 import 'record_form_fields.dart';
+import 'record_values.dart';
+import 'service_type_confirm.dart';
 
 class RecordEditorPage extends StatefulWidget {
   final ServiceRecord record;
@@ -20,6 +24,7 @@ class _RecordEditorPageState extends State<RecordEditorPage> {
   final repo = RecordsRepository();
   late ServiceRecord record;
   List<ServiceRecord> allRecords = const [];
+  late final AutosaveController autosave;
   late final vehicle = TextEditingController(text: widget.record.vehicleNumber),
       vin = TextEditingController(text: widget.record.vin),
       plate = TextEditingController(text: widget.record.licensePlate),
@@ -33,47 +38,39 @@ class _RecordEditorPageState extends State<RecordEditorPage> {
   void initState() {
     super.initState();
     record = widget.record;
+    autosave = AutosaveController(value: values, repo: repo);
+    autosave.watch([vehicle, vin, plate, miles, hours, service, workers, notes, next]);
+    autosave.restore(record.id, _applyRecord).then((ok) { if (ok && mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Restored unsaved changes'))); });
     repo.list().then((r) { if (mounted) setState(() => allRecords = r); });
   }
   @override
   void dispose() {
+    autosave.dispose();
     for (final c in [vehicle, vin, plate, miles, hours, service, workers, notes, next]) { c.dispose(); }
     super.dispose();
   }
-  ServiceRecord values() => record.copyWith(
-        vehicleNumber: vehicle.text,
-        vin: vin.text,
-        licensePlate: plate.text,
-        serviceType: service.text,
-        miles: num.tryParse(miles.text),
-        hours: num.tryParse(hours.text),
-        workerNames: workers.text.split(',').map((x) => x.trim()).where((x) => x.isNotEmpty).toList(),
-        notes: notes.text,
-        nextSteps: next.text,
-      );
+  ServiceRecord values() => buildRecordValues(record,
+      vehicle: vehicle, vin: vin, plate: plate, miles: miles, hours: hours, service: service, workers: workers, notes: notes, next: next);
+  void _applyRecord(ServiceRecord r) {
+    record = r;
+    vehicle.text = r.vehicleNumber; vin.text = r.vin; plate.text = r.licensePlate;
+    miles.text = '${r.miles ?? ''}'; hours.text = '${r.hours ?? ''}'; service.text = r.serviceType;
+    workers.text = r.workerNames.join(', '); notes.text = r.notes; next.text = r.nextSteps;
+    if (mounted) setState(() {});
+  }
+  void _scheduleChanged(MaintenanceSchedule schedule) { record = record.copyWith(schedule: schedule); autosave.touch(); setState(() {}); }
   Future<void> save() async {
     record = await repo.save(values());
+    await autosave.clearDraft(record.id);
     if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Saved')));
   }
   Future<void> applyServiceType(ServiceType type) async {
-    final hasSteps = record.schedule.leaves.isNotEmpty;
-    var replace = !hasSteps;
-    if (hasSteps) {
-      final confirmed = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
-            title: Text('Use ${type.name} schedule?'),
-            content: const Text('Replace the current checklist with that service type?'),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-              TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Use')),
-            ],
-          ));
-      replace = confirmed ?? false;
-    }
-    if (!replace) return;
+    if (!await askReplaceSchedule(context, record, type)) return;
     setState(() {
       service.text = type.name;
       record = record.copyWith(serviceType: type.name, schedule: freshTemplate(type.schedule));
     });
+    autosave.flush();
   }
   LastServiceInfo get lastService => VehicleServiceHistory.findLastServiceForUnit(allRecords.where((r) => r.id != record.id).toList(), vehicle.text);
   @override
@@ -90,7 +87,7 @@ class _RecordEditorPageState extends State<RecordEditorPage> {
         RecordFormFields(vehicle: vehicle, vin: vin, plate: plate, miles: miles, hours: hours, service: service, workers: workers, last: last, onType: applyServiceType, onVehicle: () => setState(() {})),
         const SizedBox(height: 12),
         const Text('Inspection', style: TextStyle(fontWeight: FontWeight.bold)),
-        InspectionLists(schedule: record.schedule, onChanged: (schedule) => setState(() => record = record.copyWith(schedule: schedule))),
+        InspectionLists(schedule: record.schedule, onChanged: _scheduleChanged, onCommitted: autosave.flush),
         TextField(controller: notes, maxLines: 3, decoration: const InputDecoration(labelText: 'Notes')),
         TextField(controller: next, maxLines: 3, decoration: const InputDecoration(labelText: 'Next steps')),
         const SizedBox(height: 16),
