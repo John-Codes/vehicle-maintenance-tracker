@@ -11,12 +11,11 @@ class ExcelStyles {
   static const _white = '#FFFFFF';
   static const _border = '#C5CEDB';
   static const _doneGreen = '#2E7D32';
-  static const _pendingGray = '#8A94A6';
   static const _pendingText = '#8A94A6';
 
-  static Border _thinBorder() => Border(
+  static Border _thinBorder(String color) => Border(
     borderStyle: BorderStyle.Thin,
-    borderColorHex: ExcelColor.fromHexString(_border),
+    borderColorHex: ExcelColor.fromHexString(color),
   );
 
   static CellStyle _base() => CellStyle(

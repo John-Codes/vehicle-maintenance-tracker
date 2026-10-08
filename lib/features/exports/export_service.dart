@@ -1,15 +1,12 @@
-import 'package:excel/excel.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:typed_data';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'dart:html' as html;
 import 'dart:io';
-import '../maintenance_lists/schedule_checklist.dart';
 import '../records/service_record.dart';
 import 'vehicle_service_record_pdf.dart';
-import 'excel_styles.dart';
 import 'export_workbook.dart';
 
 class ExportService {
@@ -33,10 +30,10 @@ class ExportService {
     final book = ExportWorkbook.build(r);
     final bytes = book.encode();
     if (bytes == null || bytes.isEmpty) {
-      print('ERROR: Excel encode returned null or empty bytes');
+      debugPrint('ERROR: Excel encode returned null or empty bytes');
       return;
     }
-    print('Excel export: generated ${bytes.length} bytes');
+    debugPrint('Excel export: generated ${bytes.length} bytes');
 
     if (kIsWeb) {
       await _downloadWeb(bytes, r);
@@ -58,9 +55,9 @@ class ExportService {
       anchor.click();
       html.document.body?.children.remove(anchor);
       html.Url.revokeObjectUrl(url);
-      print('Excel export: download triggered');
+      debugPrint('Excel export: download triggered for ${filename(r, 'xlsx')}');
     } catch (e) {
-      print('ERROR: Excel export failed: $e');
+      debugPrint('ERROR: Excel export failed: $e');
     }
   }
 
