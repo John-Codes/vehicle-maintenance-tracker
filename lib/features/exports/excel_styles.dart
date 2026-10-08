@@ -13,11 +13,6 @@ class ExcelStyles {
   static const _doneGreen = '#2E7D32';
   static const _pendingText = '#8A94A6';
 
-  static Border _thinBorder(String color) => Border(
-    borderStyle: BorderStyle.Thin,
-    borderColorHex: ExcelColor.fromHexString(color),
-  );
-
   static CellStyle _base() => CellStyle(
     leftBorder: Border(borderStyle: BorderStyle.Thin, borderColorHex: ExcelColor.fromHexString(_border)),
     rightBorder: Border(borderStyle: BorderStyle.Thin, borderColorHex: ExcelColor.fromHexString(_border)),
