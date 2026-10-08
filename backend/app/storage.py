@@ -20,6 +20,12 @@ def _to_item(doc):
     return doc
 
 
+def _workspace_query(workspace_id):
+    """Match a team workspace. The default team also sees legacy unscoped docs."""
+    values = [workspace_id, ''] if workspace_id == 'default' else [workspace_id]
+    return {'workspace_id': {'$in': values}}
+
+
 class Store:
     def __init__(self):
         self._client = AsyncIOMotorClient(
@@ -30,11 +36,14 @@ class Store:
         )
         self._collection = self._client[DB_NAME][COLLECTION]
 
-    async def list(self, record_type):
-        cursor = self._collection.find({'record_type': record_type}).sort('created_at', -1).limit(5000)
+    async def list(self, record_type, workspace_id=None):
+        query = {'record_type': record_type}
+        if workspace_id:
+            query.update(_workspace_query(workspace_id))
+        cursor = self._collection.find(query).sort('created_at', -1).limit(5000)
         return [_to_item(doc) for doc in await cursor.to_list(length=5000)]
 
-    async def search(self, record_type, text):
+    async def search(self, record_type, text, workspace_id=None):
         escaped = re.escape(text)
         query = {'record_type': record_type, '$or': [
             {'vehicle_number': {'$regex': escaped, '$options': 'i'}},
@@ -46,6 +55,8 @@ class Store:
             {'technician.name': {'$regex': escaped, '$options': 'i'}},
             {'worker_names': {'$regex': escaped, '$options': 'i'}},
         ]}
+        if workspace_id:
+            query['$and'] = [_workspace_query(workspace_id)]
         cursor = self._collection.find(query).sort('created_at', -1).limit(5000)
         return [_to_item(doc) for doc in await cursor.to_list(length=5000)]
 

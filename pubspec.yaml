@@ -42,6 +42,7 @@ dependencies:
   pdf: ^3.11.3
   printing: ^5.14.2
   share_plus: ^10.1.4
+  firebase_core: ^4.15.0
 
 dev_dependencies:
   flutter_test:
