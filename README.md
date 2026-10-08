@@ -241,7 +241,8 @@ checklists when a type is renamed or deleted.
 `/service-types` supports GET and POST; `/service-types/{id}` supports GET, PUT,
 and DELETE. These new endpoints do not require authentication. Existing endpoint
 behavior is unchanged. Types are stored in the `service_types` MongoDB collection.
-The five built-in templates initialize on backend startup; deleted defaults stay
+The six built-in templates are Semi, Trailer, Vermeer Reclaimer, Vermeer Drills,
+Mud Pump, and Other. They initialize on backend startup; deleted defaults stay
 deleted. Names must be nonblank and unique without regard to case.
 
 The isolated review stack defaults to API port 8021, web port 8092, and MongoDB

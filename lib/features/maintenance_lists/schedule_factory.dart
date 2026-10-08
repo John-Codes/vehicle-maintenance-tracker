@@ -16,14 +16,16 @@ class ScheduleTask {
 
 MaintenanceSchedule buildSchedule(List<ScheduleComponent> components, List<ScheduleTask> daily, List<ScheduleTask> weekly, List<ScheduleTask> monthly) {
   FrequencyList build(String prefix, List<ScheduleTask> tasks) => FrequencyList(components: [
-        for (final component in components)
+      for (final component in components)
           ComponentList(
             id: component.id,
             title: component.title,
-            steps: [
-              for (final task in tasks)
-                if (task.componentId == component.id) CheckStep(id: '$prefix-${task.id}', title: task.title),
-            ],
+            steps: tasks.where((task) => task.componentId == component.id).isEmpty
+                ? [CheckStep(id: '$prefix-${component.id}-condition', title: 'General condition and safety check')]
+                : [
+                    for (final task in tasks)
+                      if (task.componentId == component.id) CheckStep(id: '$prefix-${task.id}', title: task.title),
+                  ],
           ),
       ]);
   return MaintenanceSchedule(daily: build('d', daily), weekly: build('w', weekly), monthly: build('m', monthly));

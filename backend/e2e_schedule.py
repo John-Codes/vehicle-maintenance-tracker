@@ -48,6 +48,8 @@ def main():
     e2e_search.main()
     import e2e_service_types
     e2e_service_types.main()
+    import e2e_template_catalog
+    e2e_template_catalog.main()
     e2e_step_fields.main()
     import e2e_chat
     e2e_chat.main()
