@@ -38,12 +38,13 @@ dependencies:
   flutter_markdown_plus: ^1.0.7
   http: ^1.6.0
   path_provider: ^2.1.5
-  shared_preferences: ^2.3.3
+  shared_preferences: ^2.5.5
   pdf: ^3.11.3
   printing: ^5.14.2
   share_plus: ^10.1.4
   firebase_core: ^4.15.0
   geolocator: ^14.0.2
+  firebase_auth: ^6.7.0
 
 dev_dependencies:
   flutter_test:

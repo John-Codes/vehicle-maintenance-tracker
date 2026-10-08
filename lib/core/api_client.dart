@@ -7,6 +7,9 @@ class ApiClient {
   final http.Client _client;
   ApiClient([http.Client? client]) : _client = client ?? http.Client();
 
+  /// Tracker session token; set by the auth feature after sign-in.
+  static String? bearerToken;
+
   static const _backoffSeconds = [5, 10, 20, 30, 30];
   static final coldStart = ValueNotifier<bool>(false);
 
@@ -20,6 +23,8 @@ class ApiClient {
       try {
         final request = http.Request(method, Uri.parse('${AppConfig.apiUrl}$path'));
         request.headers.addAll({'X-App-Key': AppConfig.apiKey, 'Content-Type': 'application/json'});
+        final token = bearerToken;
+        if (token != null) request.headers['Authorization'] = 'Bearer $token';
         if (body != null) request.body = jsonEncode(body);
         final response = await http.Response.fromStream(await _client.send(request));
         final retryable = response.statusCode == 429 || response.statusCode >= 500;

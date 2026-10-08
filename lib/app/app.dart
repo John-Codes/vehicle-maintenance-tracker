@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/large_display.dart';
-import '../features/chat/chat_page.dart';
-import '../features/profile/settings_page.dart';
-import '../features/records/records_page.dart';
+import '../features/auth/auth_gate.dart';
 
 final themeNotifier = ValueNotifier<ThemeMode>(ThemeMode.dark);
 
@@ -38,30 +36,7 @@ class _TrackerAppState extends State<TrackerApp> {
             ),
             child: child,
           ),
-          home: const _Home(),
-        ),
-      );
-}
-
-class _Home extends StatefulWidget {
-  const _Home();
-  @override
-  State<_Home> createState() => _HomeState();
-}
-
-class _HomeState extends State<_Home> {
-  var tab = 0;
-  @override
-  Widget build(BuildContext context) => Scaffold(
-        body: tab == 0 ? const RecordsPage() : tab == 1 ? const ChatPage() : const SettingsPage(),
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: tab,
-          onDestinationSelected: (value) => setState(() => tab = value),
-          destinations: const [
-            NavigationDestination(icon: Icon(Icons.build_outlined), label: 'Records'),
-            NavigationDestination(icon: Icon(Icons.chat_bubble_outline), label: 'Chat'),
-            NavigationDestination(icon: Icon(Icons.person_outline), label: 'Settings'),
-          ],
+          home: const AuthGate(),
         ),
       );
 }
