@@ -7,11 +7,26 @@ from ..storage import store
 
 router = APIRouter(prefix='/service-records', dependencies=[Depends(require_key)])
 
+async def _populate_technician(item: dict) -> dict:
+    """Populate technician from profile if empty."""
+    if item.get('record_type') == 'service_record':
+        tech = item.get('technician') or {}
+        if not tech.get('name'):
+            profiles = await store.list('technician_profile')
+            if profiles:
+                item['technician'] = _technician(profiles[0])
+    return item
+
 @router.get('')
 async def list_records(search: str = ''):
     if search.strip():
-        return await store.search('service_record', search.strip())
-    return await store.list('service_record')
+        records = await store.search('service_record', search.strip())
+    else:
+        records = await store.list('service_record')
+    populated = []
+    for r in records:
+        populated.append(await _populate_technician(r))
+    return populated
 
 @router.post('')
 async def create_record():
@@ -28,7 +43,7 @@ async def get_record(item_id: str):
     item = await store.get(item_id)
     if item.get('record_type') != 'service_record':
         raise HTTPException(404, 'Record not found')
-    return item
+    return await _populate_technician(item)
 
 @router.put('/{item_id}')
 async def update_record(item_id: str, record: ServiceRecord):
