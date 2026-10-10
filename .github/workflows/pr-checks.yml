@@ -15,6 +15,9 @@ jobs:
       DB_NAME: tracker_dev
       COLLECTION: items
       APP_API_KEY: ci-dev-key
+      AUTH_MODE: dev
+      JWT_SECRET: ci-jwt-secret
+      FIREBASE_PROJECT_ID: fleet-tracker-9242a
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
     steps:
       - uses: actions/checkout@v4
@@ -37,4 +40,6 @@ jobs:
           UVPID=$!
           for i in $(seq 1 30); do curl -sf http://127.0.0.1:8011/health >/dev/null && break; sleep 2; done
           API_URL=http://127.0.0.1:8011 python e2e_schedule.py
+          API_URL=http://127.0.0.1:8011 python e2e_auth.py
+          API_URL=http://127.0.0.1:8011 python e2e_rbac.py
           kill $UVPID

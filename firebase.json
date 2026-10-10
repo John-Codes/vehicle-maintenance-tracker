@@ -1,0 +1,32 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "fleet-tracker-9242a",
+          "appId": "1:532478371882:android:392fa2ead53486c1e7fb53",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "fleet-tracker-9242a",
+          "configurations": {
+            "android": "1:532478371882:android:392fa2ead53486c1e7fb53",
+            "ios": "1:532478371882:ios:89c256c5f97861e3e7fb53",
+            "web": "1:532478371882:web:156e311e9088139ae7fb53"
+          }
+        }
+      }
+    }
+  },
+  "auth": {
+    "providers": {
+      "emailPassword": true,
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "Fleet Tracker",
+        "supportEmail": "efexzium@gmail.com"
+      }
+    }
+  }
+}

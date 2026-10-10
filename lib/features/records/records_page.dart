@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../core/large_display.dart';
+import '../auth/auth_controller.dart';
 import '../../core/cold_start_notice.dart';
 import '../editor/record_editor_page.dart';
 import 'record_search_bar.dart';
@@ -14,6 +15,7 @@ class _RecordsPageState extends State<RecordsPage> {
   @override void initState() { super.initState(); records = repo.list(); }
   @override void dispose() { searchDebounce?.cancel(); searchTextController.dispose(); super.dispose(); }
   void refresh() => setState(() => records = repo.list(search: searchText));
+  bool get canDelete => AuthController.instance.user?.isManager ?? true;
   void onSearchChanged(String text) {
     searchDebounce?.cancel();
     searchDebounce = Timer(const Duration(milliseconds: 300), () => setState(() { searchText = text; records = repo.list(search: searchText); }));
@@ -35,18 +37,20 @@ class _RecordsPageState extends State<RecordsPage> {
       if (snap.connectionState != ConnectionState.done) return const ColdStartNotice();
       if (snap.hasError) return Center(child: Text('Could not load records\n${snap.error}\nIf the free-tier database was asleep, try again.', textAlign: TextAlign.center));
       if (snap.data!.isEmpty) return Center(child: Text(searchText.isEmpty ? 'Start your first service record.' : 'No records match "$searchText".'));
-      return ListView.builder(itemCount: snap.data!.length, itemBuilder: (_, i) { final r = snap.data![i]; final leaves = r.schedule.leaves; final done = leaves.where((x) => x.done).length;       return Dismissible(
+      return ListView.builder(itemCount: snap.data!.length, itemBuilder: (_, i) { final r = snap.data![i]; final leaves = r.schedule.leaves; final done = leaves.where((x) => x.done).length;       final tile = ListTile(minVerticalPadding: biggerTextButtonsEnabled ? 12 : null, contentPadding: biggerTextButtonsEnabled ? const EdgeInsets.symmetric(horizontal: 20, vertical: 8) : null,
+          title: Text(r.vehicleNumber.isEmpty ? 'New service record' : r.vehicleNumber), subtitle: Text('${r.dateStarted.split('T').first} · $done/${leaves.length} complete'),
+          trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+            if (canDelete) IconButton(icon: const Icon(Icons.delete_outline, color: Colors.red), onPressed: () => confirmDelete(r)),
+            const Icon(Icons.chevron_right),
+          ]),
+          onTap: () async { await Navigator.push(context, MaterialPageRoute(builder: (_) => RecordEditorPage(record: r))); refresh(); });
+      if (!canDelete) return tile;
+      return Dismissible(
         key: ValueKey(r.id),
         direction: DismissDirection.endToStart,
         background: Container(alignment: Alignment.centerRight, padding: const EdgeInsets.only(right: 20), color: Colors.red, child: const Icon(Icons.delete, color: Colors.white)),
         confirmDismiss: (_) async { await confirmDelete(r); return false; },
-        child: ListTile(minVerticalPadding: biggerTextButtonsEnabled ? 12 : null, contentPadding: biggerTextButtonsEnabled ? const EdgeInsets.symmetric(horizontal: 20, vertical: 8) : null,
-          title: Text(r.vehicleNumber.isEmpty ? 'New service record' : r.vehicleNumber), subtitle: Text('${r.dateStarted.split('T').first} · $done/${leaves.length} complete'),
-          trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-            IconButton(icon: const Icon(Icons.delete_outline, color: Colors.red), onPressed: () => confirmDelete(r)),
-            const Icon(Icons.chevron_right),
-          ]),
-          onTap: () async { await Navigator.push(context, MaterialPageRoute(builder: (_) => RecordEditorPage(record: r))); refresh(); }),
+        child: tile,
       ); });
       })),
     ]),
