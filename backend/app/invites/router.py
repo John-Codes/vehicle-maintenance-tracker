@@ -11,7 +11,8 @@ router = APIRouter(prefix='/invites', tags=['Invites'])
 
 @router.post('', status_code=201)
 async def create_invite(body: InviteCreate, principal: Principal = Depends(require_manager)):
-    return await invite_store.create(principal.workspace_id, body.role, principal.user_id)
+    return await invite_store.create(principal.workspace_id, body.role,
+                                     principal.user_id, body.label)
 
 
 @router.get('')

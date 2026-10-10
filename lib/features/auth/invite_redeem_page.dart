@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'auth_controller.dart';
+import 'session_store.dart';
 
 /// Pending users land here: enter (or auto-fill) a manager's invite code.
 class InviteRedeemPage extends StatefulWidget {
@@ -12,6 +13,20 @@ class InviteRedeemPage extends StatefulWidget {
 class _InviteRedeemPageState extends State<InviteRedeemPage> {
   final code = TextEditingController();
   var busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _autoRedeemCapturedCode();
+  }
+
+  /// Someone opened an ?invite=CODE link: prefill and redeem immediately.
+  Future<void> _autoRedeemCapturedCode() async {
+    final captured = await SessionStore.inviteCode();
+    if (captured == null || captured.isEmpty) return;
+    code.text = captured;
+    if (mounted) await redeem();
+  }
 
   @override
   void dispose() { code.dispose(); super.dispose(); }

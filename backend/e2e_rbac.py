@@ -98,8 +98,9 @@ def main():
     print('role changes ok')
 
     # Invites: create -> share code -> pending user redeems -> joins workspace
-    status, invite = call('POST', '/invites', {'role': 'tech'}, token=manager_tok)
-    assert status == 201 and invite['used'] is False
+    status, invite = call('POST', '/invites', {'role': 'tech', 'label': 'Carlos S.'},
+                          token=manager_tok)
+    assert status == 201 and invite['used'] is False and invite['label'] == 'Carlos S.'
     pending_tok, pending = dev_token('new-hire@e2e.dev', 'tech', '')
     status, joined = call('POST', '/invites/redeem', {'code': invite['code']},
                           token=pending_tok)

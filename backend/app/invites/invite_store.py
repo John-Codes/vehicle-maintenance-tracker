@@ -19,17 +19,18 @@ def public(doc):
     item = _to_item(doc)
     item.setdefault('workspace_id', '')
     item.setdefault('role', 'tech')
+    item.setdefault('label', '')
     item.setdefault('used', False)
     item.setdefault('created_by', '')
     item.setdefault('used_by', '')
     return item
 
 
-async def create(workspace_id, role, created_by):
-    """One invite = one single-use code, revocable, scoped to a workspace."""
+async def create(workspace_id, role, created_by, label=''):
+    """One invite = one single-use code with an optional invitee label."""
     invite = {'code': secrets.token_urlsafe(6), 'workspace_id': workspace_id,
-              'role': role, 'created_by': created_by, 'created_at': _now(),
-              'used': False, 'used_by': '', 'used_at': ''}
+              'role': role, 'label': label, 'created_by': created_by,
+              'created_at': _now(), 'used': False, 'used_by': '', 'used_at': ''}
     result = await collection.insert_one(invite)
     return public(await collection.find_one({'_id': result.inserted_id}))
 

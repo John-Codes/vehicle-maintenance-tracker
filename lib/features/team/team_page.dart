@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/cold_start_notice.dart';
+import 'invites_page.dart';
 import 'team_repository.dart';
 
 /// Manager-only: workspace user list with role changes and removal.
@@ -39,7 +40,16 @@ class _TeamPageState extends State<TeamPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Team')),
+    appBar: AppBar(title: const Text('Team'), actions: [
+      IconButton(
+        icon: const Icon(Icons.person_add_alt_outlined),
+        tooltip: 'Invite links',
+        onPressed: () async {
+          await Navigator.push(context, MaterialPageRoute(builder: (_) => const InvitesPage()));
+          refresh();
+        },
+      ),
+    ]),
     body: FutureBuilder<List<TeamMember>>(future: members, builder: (_, snap) {
       if (snap.connectionState != ConnectionState.done) return const ColdStartNotice();
       if (snap.hasError) return Center(child: Text('${snap.error}'));

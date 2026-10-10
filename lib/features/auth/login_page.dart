@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'auth_controller.dart';
+import 'brand_header.dart';
 
 /// Basic auth UI: email/password sign in + Google button.
 class LoginPage extends StatefulWidget {
@@ -57,27 +58,30 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(title: const Text('Fleet Tracker')),
         body: Center(
-          child: ListView(shrinkWrap: true, padding: const EdgeInsets.all(24), children: [
+          child: ListView(shrinkWrap: true, padding: const EdgeInsets.all(32), children: [
+            const BrandHeader(),
+            const SizedBox(height: 36),
             TextField(controller: email, keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.mail_outline))),
-            const SizedBox(height: 12),
+            const SizedBox(height: 28),
             TextField(controller: password, obscureText: true,
                 decoration: const InputDecoration(labelText: 'Password', prefixIcon: Icon(Icons.lock_outline))),
-            const SizedBox(height: 20),
+            const SizedBox(height: 44),
             FilledButton(
               onPressed: busy ? null : submit,
-              style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+              style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(56), padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16)),
               child: Text(busy ? 'Please wait…' : (register ? 'Create account' : 'Sign in')),
             ),
+            const SizedBox(height: 20),
             TextButton(
               onPressed: busy ? null : () => setState(() => register = !register),
               child: Text(register ? 'I already have an account' : 'Create an account'),
             ),
-            const Divider(height: 32),
+            const Divider(height: 64),
             OutlinedButton.icon(
               onPressed: busy ? null : google,
-              style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
-              icon: const Icon(Icons.g_mobiledata),
+              style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(56), padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16)),
+              icon: Image.asset('assets/google_logo.png', width: 26, height: 26),
               label: const Text('Continue with Google'),
             ),
           ]),

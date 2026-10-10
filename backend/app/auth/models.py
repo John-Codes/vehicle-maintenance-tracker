@@ -20,6 +20,7 @@ class RoleChange(BaseModel):
 
 class InviteCreate(BaseModel):
     role: str = Field(default='tech', pattern='^(manager|tech)$')
+    label: str = Field(default='', max_length=120)
 
 
 class InviteRedeem(BaseModel):
