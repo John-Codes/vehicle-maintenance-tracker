@@ -4,6 +4,7 @@ import '../../core/large_display.dart';
 import '../auth/auth_controller.dart';
 import '../../core/cold_start_notice.dart';
 import '../editor/record_editor_page.dart';
+import '../my_car/my_car_page.dart';
 import 'record_search_bar.dart';
 import 'records_repository.dart';
 import 'service_record.dart';
@@ -30,7 +31,14 @@ class _RecordsPageState extends State<RecordsPage> {
     if (yes == true) { await repo.delete(r.id); refresh(); }
   }
   @override Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Service records')),
+    appBar: AppBar(title: const Text('Service records'), actions: [
+      IconButton(
+        icon: const Icon(Icons.directions_car_outlined),
+        tooltip: 'My car',
+        onPressed: () => Navigator.push(context,
+            MaterialPageRoute(builder: (_) => const MyCarPage())),
+      ),
+    ]),
     body: Column(children: [
       RecordSearchBar(controller: searchTextController, onChanged: onSearchChanged),
       Expanded(child: FutureBuilder<List<ServiceRecord>>(future: records, builder: (_, snap) {
