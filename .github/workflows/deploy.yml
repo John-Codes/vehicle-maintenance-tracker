@@ -34,6 +34,7 @@ jobs:
           API_URL=http://127.0.0.1:8011 python e2e_schedule.py
           API_URL=http://127.0.0.1:8011 python e2e_auth.py
           API_URL=http://127.0.0.1:8011 python e2e_rbac.py
+          API_URL=http://127.0.0.1:8011 python e2e_telemetry.py
           kill $UVPID
 
   ship:
