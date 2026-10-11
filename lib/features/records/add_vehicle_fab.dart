@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 
 /// The big add button: cycles "Add car / Add truck / Add heavy equipment"
 /// with matching icons and a bright gradient so it's obvious what to tap.
+/// Tapping creates the record AS the type currently shown.
 class AddVehicleFab extends StatefulWidget {
-  final VoidCallback onPressed;
+  final void Function(String vehicleType) onPressed;
   const AddVehicleFab({super.key, required this.onPressed});
   @override
   State<AddVehicleFab> createState() => _AddVehicleFabState();
@@ -13,9 +14,10 @@ class AddVehicleFab extends StatefulWidget {
 
 class _AddVehicleFabState extends State<AddVehicleFab> {
   static const _items = [
-    (Icons.directions_car, 'Add car'),
-    (Icons.local_shipping, 'Add truck'),
-    (Icons.construction, 'Add heavy equipment'),
+    (Icons.directions_car, 'Add car', 'car'),
+    (Icons.local_shipping, 'Add truck', 'truck'),
+    (Icons.construction, 'Add heavy equipment', 'heavy_equipment'),
+    (Icons.motorcycle, 'Add motorcycle', 'motorcycle'),
   ];
   int _index = 0;
   Timer? _timer;
@@ -46,7 +48,7 @@ class _AddVehicleFabState extends State<AddVehicleFab> {
           ],
         ),
         child: FilledButton.icon(
-          onPressed: widget.onPressed,
+          onPressed: () => widget.onPressed(_items[_index].$3),
           style: FilledButton.styleFrom(
             backgroundColor: Colors.transparent,
             foregroundColor: Colors.white,

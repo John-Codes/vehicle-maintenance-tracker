@@ -3,11 +3,10 @@ import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
-// ignore: avoid_web_libraries_in_flutter, deprecated_member_use
-import 'dart:html' as html;
 import 'dart:io';
 import '../records/service_record.dart';
 import 'vehicle_service_record_pdf.dart';
+import 'export_download.dart';
 import 'export_workbook.dart';
 
 class ExportService {
@@ -37,28 +36,9 @@ class ExportService {
     debugPrint('Excel export: generated ${bytes.length} bytes');
 
     if (kIsWeb) {
-      await _downloadWeb(bytes, r);
+      await downloadXlsxWeb(bytes, filename(r, 'xlsx'));
     } else {
       await _saveNative(bytes, r);
-    }
-  }
-
-  static Future<void> _downloadWeb(List<int> bytes, ServiceRecord r) async {
-    try {
-      final uint8list = Uint8List.fromList(bytes);
-      final blob = html.Blob([uint8list]);
-      final url = html.Url.createObjectUrlFromBlob(blob);
-      final anchor = html.document.createElement('a') as html.AnchorElement
-        ..href = url
-        ..style.display = 'none'
-        ..download = filename(r, 'xlsx');
-      html.document.body?.children.add(anchor);
-      anchor.click();
-      html.document.body?.children.remove(anchor);
-      html.Url.revokeObjectUrl(url);
-      debugPrint('Excel export: download triggered for ${filename(r, 'xlsx')}');
-    } catch (e) {
-      debugPrint('ERROR: Excel export failed: $e');
     }
   }
 
