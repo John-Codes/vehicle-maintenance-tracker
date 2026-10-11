@@ -4,7 +4,8 @@ import '../../core/large_display.dart';
 import '../auth/auth_controller.dart';
 import '../../core/cold_start_notice.dart';
 import '../editor/record_editor_page.dart';
-import '../my_car/my_car_page.dart';
+import '../telemetry/reading_entry_page.dart';
+import 'add_vehicle_fab.dart';
 import 'record_search_bar.dart';
 import 'records_repository.dart';
 import 'service_record.dart';
@@ -22,6 +23,10 @@ class _RecordsPageState extends State<RecordsPage> {
     searchDebounce = Timer(const Duration(milliseconds: 300), () => setState(() { searchText = text; records = repo.list(search: searchText); }));
   }
   Future<void> create() async { final record = await repo.create(); if (mounted) { await Navigator.push(context, MaterialPageRoute(builder: (_) => RecordEditorPage(record: record))); refresh(); } }
+  Future<void> logMiles(ServiceRecord r) async {
+    await Navigator.push(context, MaterialPageRoute(
+        builder: (_) => ReadingEntryPage(vehicleNumber: r.vehicleNumber)));
+  }
   Future<void> confirmDelete(ServiceRecord r) async {
     final yes = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
       title: const Text('Delete record?'),
@@ -31,14 +36,7 @@ class _RecordsPageState extends State<RecordsPage> {
     if (yes == true) { await repo.delete(r.id); refresh(); }
   }
   @override Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Service records'), actions: [
-      IconButton(
-        icon: const Icon(Icons.directions_car_outlined),
-        tooltip: 'My car',
-        onPressed: () => Navigator.push(context,
-            MaterialPageRoute(builder: (_) => const MyCarPage())),
-      ),
-    ]),
+    appBar: AppBar(title: const Text('Service records')),
     body: Column(children: [
       RecordSearchBar(controller: searchTextController, onChanged: onSearchChanged),
       Expanded(child: FutureBuilder<List<ServiceRecord>>(future: records, builder: (_, snap) {
@@ -48,6 +46,8 @@ class _RecordsPageState extends State<RecordsPage> {
       return ListView.builder(itemCount: snap.data!.length, itemBuilder: (_, i) { final r = snap.data![i]; final leaves = r.schedule.leaves; final done = leaves.where((x) => x.done).length;       final tile = ListTile(minVerticalPadding: biggerTextButtonsEnabled ? 12 : null, contentPadding: biggerTextButtonsEnabled ? const EdgeInsets.symmetric(horizontal: 20, vertical: 8) : null,
           title: Text(r.vehicleNumber.isEmpty ? 'New service record' : r.vehicleNumber), subtitle: Text('${r.dateStarted.split('T').first} · $done/${leaves.length} complete'),
           trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+            IconButton(icon: const Icon(Icons.speed_outlined, color: Color(0xff12b394)),
+                tooltip: 'Log miles', onPressed: () => logMiles(r)),
             if (canDelete) IconButton(icon: const Icon(Icons.delete_outline, color: Colors.red), onPressed: () => confirmDelete(r)),
             const Icon(Icons.chevron_right),
           ]),
@@ -62,6 +62,6 @@ class _RecordsPageState extends State<RecordsPage> {
       ); });
       })),
     ]),
-    floatingActionButton: FloatingActionButton.extended(onPressed: create, icon: const Icon(Icons.add), label: const Text('New record')),
+    floatingActionButton: AddVehicleFab(onPressed: create),
   );
 }

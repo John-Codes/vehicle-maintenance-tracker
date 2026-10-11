@@ -4,8 +4,10 @@ import 'package:flutter/services.dart';
 import 'telemetry_repository.dart';
 
 /// Plain-English form: "How many miles are on it right now?"
+/// Opens from a record's speedometer button, vehicle prefilled.
 class ReadingEntryPage extends StatefulWidget {
-  const ReadingEntryPage({super.key});
+  final String vehicleNumber;
+  const ReadingEntryPage({super.key, required this.vehicleNumber});
   @override
   State<ReadingEntryPage> createState() => _ReadingEntryPageState();
 }
@@ -17,6 +19,12 @@ class _ReadingEntryPageState extends State<ReadingEntryPage> {
   final hours = TextEditingController();
   final notes = TextEditingController();
   var busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    vehicle.text = widget.vehicleNumber;
+  }
 
   @override
   void dispose() {
