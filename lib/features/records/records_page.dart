@@ -4,7 +4,7 @@ import '../../core/large_display.dart';
 import '../auth/auth_controller.dart';
 import '../../core/cold_start_notice.dart';
 import '../editor/record_editor_page.dart';
-import '../telemetry/reading_entry_page.dart';
+import 'miles_update_page.dart';
 import 'add_vehicle_fab.dart';
 import 'record_search_bar.dart';
 import 'records_repository.dart';
@@ -24,8 +24,9 @@ class _RecordsPageState extends State<RecordsPage> {
   }
   Future<void> create() async { final record = await repo.create(); if (mounted) { await Navigator.push(context, MaterialPageRoute(builder: (_) => RecordEditorPage(record: record))); refresh(); } }
   Future<void> logMiles(ServiceRecord r) async {
-    await Navigator.push(context, MaterialPageRoute(
-        builder: (_) => ReadingEntryPage(vehicleNumber: r.vehicleNumber)));
+    final updated = await Navigator.push<ServiceRecord>(context,
+        MaterialPageRoute(builder: (_) => MilesUpdatePage(record: r)));
+    if (updated != null) { await repo.save(updated); refresh(); }
   }
   Future<void> confirmDelete(ServiceRecord r) async {
     final yes = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
@@ -63,5 +64,6 @@ class _RecordsPageState extends State<RecordsPage> {
       })),
     ]),
     floatingActionButton: AddVehicleFab(onPressed: create),
+    floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
   );
 }

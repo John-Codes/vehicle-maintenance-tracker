@@ -6,7 +6,6 @@ from .config import CORS_ORIGINS
 from .invites import router as invites
 from .routers import chat, profile, records, users
 from .storage import store
-from .telemetry import router as telemetry
 from .service_types import router as service_types, store as type_store
 
 @asynccontextmanager
@@ -25,7 +24,6 @@ app.include_router(auth.router)
 app.include_router(auth_dev.router)
 app.include_router(users.router)
 app.include_router(invites)
-app.include_router(telemetry)
 
 @app.get('/health')
 async def health(): return {'ok': True}
