@@ -41,6 +41,7 @@ curl -sf http://127.0.0.1:$API_PORT/health >/dev/null || { echo "backend failed:
 
 echo "== e2e against local DB =="
 API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" OPENROUTER_API_KEY="${OPENROUTER_API_KEY:-}" backend/.venv/bin/python backend/e2e_schedule.py
+API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" OPENROUTER_API_KEY="${OPENROUTER_API_KEY:-}" backend/.venv/bin/python backend/e2e_time_tracking.py
 API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" backend/.venv/bin/python backend/e2e_auth.py
 API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" backend/.venv/bin/python backend/e2e_rbac.py
 

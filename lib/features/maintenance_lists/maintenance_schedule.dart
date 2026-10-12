@@ -6,28 +6,40 @@ class ComponentList {
   final String id;
   final String title;
   final List<CheckStep> steps;
-  const ComponentList({required this.id, required this.title, this.steps = const []});
-  ComponentList copyWith({List<CheckStep>? steps}) => ComponentList(id: id, title: title, steps: steps ?? this.steps);
+  final String timeStartedAt;
+  final int timeSpentSeconds;
+  final String timerPausedAt;
+  const ComponentList({required this.id, required this.title, this.steps = const [], this.timeStartedAt = '', this.timeSpentSeconds = 0, this.timerPausedAt = ''});
+  ComponentList copyWith({List<CheckStep>? steps, String? timeStartedAt, int? timeSpentSeconds, String? timerPausedAt}) => ComponentList(id: id, title: title, steps: steps ?? this.steps, timeStartedAt: timeStartedAt ?? this.timeStartedAt, timeSpentSeconds: timeSpentSeconds ?? this.timeSpentSeconds, timerPausedAt: timerPausedAt ?? this.timerPausedAt);
   factory ComponentList.fromJson(Map j) => ComponentList(
         id: '${j['id'] ?? ''}',
         title: '${j['title'] ?? ''}',
         steps: ((j['steps'] as List?) ?? []).map((x) => CheckStep.fromJson(Map<String, dynamic>.from(x))).toList(),
+        timeStartedAt: '${j['time_started_at'] ?? ''}',
+        timeSpentSeconds: ((j['time_spent_seconds'] as num?) ?? 0).toInt(),
+        timerPausedAt: '${j['timer_paused_at'] ?? ''}',
       );
-  Map<String, dynamic> toJson() => {'id': id, 'title': title, 'steps': steps.map((s) => s.toJson()).toList()};
+  Map<String, dynamic> toJson() => {'id': id, 'title': title, 'steps': steps.map((s) => s.toJson()).toList(), 'time_started_at': timeStartedAt, 'time_spent_seconds': timeSpentSeconds, 'timer_paused_at': timerPausedAt};
 }
 
 class FrequencyList {
   final String lastDoneAt;
   final List<ComponentList> components;
-  const FrequencyList({this.lastDoneAt = '', this.components = const []});
+  final String timeStartedAt;
+  final int timeSpentSeconds;
+  final String timerPausedAt;
+  const FrequencyList({this.lastDoneAt = '', this.components = const [], this.timeStartedAt = '', this.timeSpentSeconds = 0, this.timerPausedAt = ''});
   bool get markedDone => lastDoneAt.isNotEmpty;
-  FrequencyList copyWith({String? lastDoneAt, List<ComponentList>? components}) =>
-      FrequencyList(lastDoneAt: lastDoneAt ?? this.lastDoneAt, components: components ?? this.components);
+  FrequencyList copyWith({String? lastDoneAt, List<ComponentList>? components, String? timeStartedAt, int? timeSpentSeconds, String? timerPausedAt}) =>
+      FrequencyList(lastDoneAt: lastDoneAt ?? this.lastDoneAt, components: components ?? this.components, timeStartedAt: timeStartedAt ?? this.timeStartedAt, timeSpentSeconds: timeSpentSeconds ?? this.timeSpentSeconds, timerPausedAt: timerPausedAt ?? this.timerPausedAt);
   factory FrequencyList.fromJson(Map j) => FrequencyList(
         lastDoneAt: '${j['last_done_at'] ?? ''}',
         components: ((j['components'] as List?) ?? []).map((x) => ComponentList.fromJson(Map<String, dynamic>.from(x))).toList(),
+        timeStartedAt: '${j['time_started_at'] ?? ''}',
+        timeSpentSeconds: ((j['time_spent_seconds'] as num?) ?? 0).toInt(),
+        timerPausedAt: '${j['timer_paused_at'] ?? ''}',
       );
-  Map<String, dynamic> toJson() => {'last_done_at': lastDoneAt, 'components': components.map((c) => c.toJson()).toList()};
+  Map<String, dynamic> toJson() => {'last_done_at': lastDoneAt, 'components': components.map((c) => c.toJson()).toList(), 'time_started_at': timeStartedAt, 'time_spent_seconds': timeSpentSeconds, 'timer_paused_at': timerPausedAt};
 }
 
 class MaintenanceSchedule {

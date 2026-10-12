@@ -60,6 +60,7 @@ class _InspectionListsState extends State<InspectionLists> {
             clear(id, list);
           }
         },
+        onFrequencyChanged: (l) => write(id, l),
       ),
       if (open) ...[
         Align(
@@ -81,6 +82,7 @@ class _InspectionListsState extends State<InspectionLists> {
             onDelete: (stepId) => write(id, deleteStep(list, component.id, stepId)),
             onAdd: () => write(id, addStep(list, component.id)),
             onToggle: (done) => toggleComponent(id, list, component.id, done),
+            onComponentChanged: (c) => write(id, replaceComponent(list, component.id, c)),
             onCommitted: widget.onCommitted,
           ),
       ],
