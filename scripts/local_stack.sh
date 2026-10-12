@@ -44,6 +44,8 @@ API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" OPENROUTER_API_KEY="${OPEN
 API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" OPENROUTER_API_KEY="${OPENROUTER_API_KEY:-}" backend/.venv/bin/python backend/e2e_time_tracking.py
 API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" backend/.venv/bin/python backend/e2e_auth.py
 API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" backend/.venv/bin/python backend/e2e_rbac.py
+API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" backend/.venv/bin/python backend/e2e_workspace_auto_assign.py
+API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" backend/.venv/bin/python backend/e2e_workspace_switching.py
 
 echo "== clearing e2e users so the first reviewer signs in as manager =="
 docker exec "$MONGO_CONTAINER" mongosh --quiet chat_gpt_tracker_local --eval 'db.users.drop(); db.invites.drop()' >/dev/null 2>&1 || true

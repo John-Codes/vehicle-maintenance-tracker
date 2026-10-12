@@ -8,6 +8,7 @@ import json
 import os
 import urllib.error
 import urllib.request
+import uuid
 
 BASE = os.environ['API_URL'].rstrip('/')
 KEY = os.environ['APP_API_KEY']
@@ -71,12 +72,13 @@ def main():
     assert status == 200 and me['email'] == 'manager-a@e2e.dev'
     print('dev-token + me ok')
 
-    # Auto-assign: first user ever is manager of default; later users pending techs
-    _, auto_user = dev_token('auto-assign@e2e.dev')
-    if auto_user['workspace_id']:
-        assert auto_user['role'] == 'manager' and auto_user['workspace_id'] == 'default', auto_user
-    else:
-        assert auto_user['role'] == 'tech', auto_user  # pending on a reused DB
+    # Auto-assign: every new user is manager of their own unique workspace
+    auto = f'auto-assign-{uuid.uuid4().hex[:8]}@e2e.dev'
+    _, auto_user = dev_token(auto)
+    assert auto_user['role'] == 'manager', auto_user
+    assert auto_user['workspace_id'].startswith('ws-'), auto_user
+    _, again = dev_token(auto)
+    assert again['workspace_id'] == auto_user['workspace_id'], again
     print('auto-assign ok')
 
     # Workspace scoping: ws-alpha record invisible to ws-beta and to pending users

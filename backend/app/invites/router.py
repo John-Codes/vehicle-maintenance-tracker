@@ -27,9 +27,10 @@ async def revoke_invite(invite_id: str, principal: Principal = Depends(require_m
 
 @router.post('/redeem')
 async def redeem_invite(body: InviteRedeem, principal: Principal = Depends(require_user)):
-    """Consume an invite code and join its workspace with the assigned role.
+    """Consume an invite code, activate its workspace, and keep prior memberships.
 
-    Open to pending users (no workspace yet) via require_user on purpose.
+    Open to any signed-in user via require_user on purpose; existing workspaces
+    (including the user's own auto-provisioned one) are preserved as memberships.
     """
     invite = await invite_store.redeem(body.code, principal.user_id)
     user = await user_store.join_workspace(principal.user_id, invite['workspace_id'], invite['role'])

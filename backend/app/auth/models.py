@@ -18,6 +18,10 @@ class RoleChange(BaseModel):
     role: str = Field(pattern='^(manager|tech)$')
 
 
+class WorkspaceSwitch(BaseModel):
+    workspace_id: str = Field(max_length=80)
+
+
 class InviteCreate(BaseModel):
     role: str = Field(default='tech', pattern='^(manager|tech)$')
     label: str = Field(default='', max_length=120)

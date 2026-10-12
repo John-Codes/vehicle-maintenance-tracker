@@ -43,4 +43,6 @@ jobs:
           API_URL=http://127.0.0.1:8011 python e2e_time_tracking.py
           API_URL=http://127.0.0.1:8011 python e2e_auth.py
           API_URL=http://127.0.0.1:8011 python e2e_rbac.py
+          API_URL=http://127.0.0.1:8011 python e2e_workspace_auto_assign.py
+          API_URL=http://127.0.0.1:8011 python e2e_workspace_switching.py
           kill $UVPID
