@@ -48,6 +48,8 @@ class MaintenanceSchedule(BaseModel):
 
 class ServiceRecord(BaseModel):
     vehicle_number: str = ''
+    vehicle_type: str = Field(default='', pattern='^(car|truck|heavy_equipment|motorcycle|other|)$')
+    scanner: dict = Field(default_factory=dict)
     miles: Optional[float] = Field(None, ge=0)
     hours: Optional[float] = Field(None, ge=0)
     date_started: str = ''

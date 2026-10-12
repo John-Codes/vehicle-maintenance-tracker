@@ -7,6 +7,9 @@ import 'profile_repository.dart';
 import 'technician.dart';
 import '../service_types/service_types_page.dart';
 
+// UI label: "vehicle/equipment type" — the data field is still `service_type` (API: /service-types).
+// Renamed at the UI level only, per BRANCH_UPDATE_RULES; no backend/data changes.
+
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
   @override State<SettingsPage> createState() => _SettingsPageState();
@@ -55,7 +58,7 @@ class _SettingsPageState extends State<SettingsPage> {
         onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ServiceTypesPage())),
         style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48), padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14)),
         icon: const Icon(Icons.category_outlined),
-        label: const Text('Manage service types'),
+        label: const Text('Manage vehicle/equipment types'),
       ),
       const SizedBox(height: 20),
       FilledButton(

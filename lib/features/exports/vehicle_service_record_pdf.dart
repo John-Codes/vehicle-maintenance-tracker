@@ -6,6 +6,9 @@ import 'package:pdf/widgets.dart' as pw;
 import '../maintenance_lists/schedule_checklist.dart';
 import '../records/service_record.dart';
 
+// UI label: "vehicle/equipment type" — the data field is still `service_type` (API: /service-types).
+// Renamed at the UI level only, per BRANCH_UPDATE_RULES; no backend/data changes.
+
 enum ItemStatus { yes, no }
 
 class ChecklistItem {
@@ -106,7 +109,7 @@ class VehicleServiceRecordPdf {
     final rows = <List<pw.Widget>>[
       [label('Technician'), value(r.technician.name), label('Vehicle #'), value(r.vehicleNumber)],
       [label('Phone'), value(r.technician.phone), label('Service Date'), value(_formatDate(serviceDate))],
-      [label('Email'), value(r.technician.email), label('Service Type'), value(r.serviceType)],
+      [label('Email'), value(r.technician.email), label('Vehicle/Equipment Type'), value(r.serviceType)],
       [label('Mileage'), value('${_formatNumber(r.miles ?? 0)} mi'), label('Engine Hours'), value('${_formatNumber(r.hours ?? 0)} hrs')],
       if (workers.isNotEmpty) [label('Workers'), value(workers), label(''), value('')],
     ];
