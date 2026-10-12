@@ -4,6 +4,9 @@ import '../records/service_record.dart';
 import 'excel_styles.dart';
 import 'export_cell_ops.dart';
 
+// UI label: "vehicle/equipment type" — the data field is still `service_type` (API: /service-types).
+// Renamed at the UI level only, per BRANCH_UPDATE_RULES; no backend/data changes.
+
 class ExportWorkbook {
   static Excel build(ServiceRecord r) {
     final book = Excel.createExcel();
@@ -31,7 +34,7 @@ class ExportWorkbook {
       ['Date', r.dateStarted],
       ['Miles', r.miles?.toString() ?? ''],
       ['Hours', r.hours?.toString() ?? ''],
-      ['Service type', r.serviceType],
+      ['Vehicle/Equipment Type', r.serviceType],
       ['Technician', r.technician.name],
       ['Workers', r.workerNames.join(', ')],
       ['Location', 'Captured per-step'],

@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'service_type.dart';
 import 'service_types_repository.dart';
 import 'service_type_editor.dart';
+import 'vehicle_emoji.dart';
+
+// UI label: "vehicle/equipment type" — the data field is still `service_type` (API: /service-types).
+// Renamed at the UI level only, per BRANCH_UPDATE_RULES; no backend/data changes.
 class ServiceTypesPage extends StatefulWidget {
   const ServiceTypesPage({super.key});
   @override State<ServiceTypesPage> createState() => _ServiceTypesPageState();
@@ -27,13 +31,14 @@ class _ServiceTypesPageState extends State<ServiceTypesPage> {
     finally { if (mounted) setState(() => deleting = false); }
   }
   @override Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Service types')),
-    floatingActionButton: FloatingActionButton.extended(onPressed: () => edit(), icon: const Icon(Icons.add), label: const Text('Add service type')),
+    appBar: AppBar(title: const Text('Vehicle/equipment types')),
+    floatingActionButton: FloatingActionButton.extended(onPressed: () => edit(), icon: const Icon(Icons.add), label: const Text('Add type')),
     body: FutureBuilder<List<ServiceType>>(future: types, builder: (_, snapshot) {
       if (snapshot.connectionState != ConnectionState.done) return const Center(child: CircularProgressIndicator());
-      if (snapshot.hasError) return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [Text('Could not load service types: ${snapshot.error}'), TextButton(onPressed: refresh, child: const Text('Retry'))]));
-      if (snapshot.data!.isEmpty) return const Center(child: Text('Add your first service type.'));
+      if (snapshot.hasError) return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [Text('Could not load types: ${snapshot.error}'), TextButton(onPressed: refresh, child: const Text('Retry'))]));
+      if (snapshot.data!.isEmpty) return const Center(child: Text('Add your first vehicle/equipment type.'));
       return ListView(padding: const EdgeInsets.only(bottom: 90), children: [for (final type in snapshot.data!) ListTile(
+        leading: Text(vehicleEmojiFor(vehicleTypeName: type.name), style: const TextStyle(fontSize: 26)),
         title: Text(type.name), subtitle: Text('${type.schedule.leaves.length} checklist items'),
         onTap: () => edit(type), trailing: Row(mainAxisSize: MainAxisSize.min, children: [
           IconButton(tooltip: 'Edit', onPressed: () => edit(type), icon: const Icon(Icons.edit_outlined)),
