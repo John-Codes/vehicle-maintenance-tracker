@@ -26,10 +26,10 @@ def main():
     name = 'E2E type ' + uuid.uuid4().hex
     seed = call('GET', '/service-types')
     assert seed, 'Built-in templates were not initialized'
-    schedule = {f: {'last_done_at': '', 'components': [{'id': 'engine', 'title': 'Engine',
+    schedule = {f: {'last_done_at': '', 'time_started_at': '', 'time_spent_seconds': 0, 'timer_paused_at': '', 'components': [{'id': 'engine', 'title': 'Engine', 'time_started_at': '', 'time_spent_seconds': 0, 'timer_paused_at': '',
         'steps': [{'id': f + '-oil', 'title': 'Oil', 'description': 'Check level',
         'value': 'Dipstick', 'notes': 'Cold engine', 'done': False, 'not_applicable': False,
-        'done_at': '', 'done_history': []}]}]}
+        'done_at': '', 'done_history': [], 'time_started_at': '', 'time_spent_seconds': 0, 'timer_paused_at': ''}]}]}
         for f in ('daily', 'weekly', 'monthly')}
     body = {'name': name, 'schedule': schedule}
     created = call('POST', '/service-types', body, 201)

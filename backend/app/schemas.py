@@ -22,15 +22,24 @@ class CheckStep(BaseModel):
     value: str = ''
     notes: str = ''
     description: str = ''
+    time_started_at: str = ''
+    time_spent_seconds: int = 0
+    timer_paused_at: str = ''
 
 class ComponentList(BaseModel):
     id: str
     title: str = Field(min_length=1, max_length=120)
     steps: list[CheckStep] = []
+    time_started_at: str = ''
+    time_spent_seconds: int = 0
+    timer_paused_at: str = ''
 
 class FrequencyList(BaseModel):
     last_done_at: str = ''
     components: list[ComponentList] = []
+    time_started_at: str = ''
+    time_spent_seconds: int = 0
+    timer_paused_at: str = ''
 
 class MaintenanceSchedule(BaseModel):
     daily: FrequencyList

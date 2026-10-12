@@ -15,6 +15,17 @@ FrequencyList replaceStep(FrequencyList list, String componentId, CheckStep step
       : next.copyWith(lastDoneAt: '');
 }
 
+FrequencyList replaceComponent(FrequencyList list, String componentId, ComponentList component) {
+  final next = list.copyWith(
+    components: list.components.map((c) => c.id == componentId ? component : c).toList(),
+  );
+  final complete = next.components.isNotEmpty &&
+      next.components.every((c) => c.steps.isNotEmpty && c.steps.every((s) => s.done || s.notApplicable));
+  return complete
+      ? next.copyWith(lastDoneAt: next.lastDoneAt.isEmpty ? todayDate() : next.lastDoneAt)
+      : next.copyWith(lastDoneAt: '');
+}
+
 FrequencyList deleteStep(FrequencyList list, String componentId, String stepId) => list.copyWith(
       components: list.components
           .map((c) => c.id == componentId ? c.copyWith(steps: c.steps.where((s) => s.id != stepId).toList()) : c)
