@@ -1,7 +1,6 @@
 import 'records_repository.dart';
 import 'service_record.dart';
 import '../telemetry/elm327_engine.dart';
-import '../telemetry/scanner_registry.dart';
 import '../telemetry/telemetry_reading.dart';
 import '../telemetry/transports/ble_transport.dart';
 import '../telemetry/vehicle_profile.dart';

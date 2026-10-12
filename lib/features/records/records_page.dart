@@ -7,7 +7,6 @@ import '../editor/record_editor_page.dart';
 import '../telemetry/miles_source_sheet.dart';
 import 'add_vehicle_fab.dart';
 import 'record_search_bar.dart';
-import 'vehicle_icon.dart';
 import '../service_types/vehicle_emoji.dart';
 import 'records_repository.dart';
 import 'service_record.dart';
