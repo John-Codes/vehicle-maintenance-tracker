@@ -5,13 +5,16 @@ from .auth.routers import auth, auth_dev
 from .config import CORS_ORIGINS
 from .invites import router as invites
 from .routers import chat, profile, records, users
+from .scheduler import start_scheduler, stop_scheduler
 from .storage import store
 from .service_types import router as service_types, store as type_store
 
 @asynccontextmanager
 async def lifespan(app):
     await type_store.initialize()
+    start_scheduler()
     yield
+    stop_scheduler()
     await store.close()
 
 app = FastAPI(title='Vehicle Service Tracker API', lifespan=lifespan)
