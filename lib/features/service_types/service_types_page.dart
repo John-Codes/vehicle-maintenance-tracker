@@ -36,7 +36,7 @@ class _ServiceTypesPageState extends State<ServiceTypesPage> {
       IconButton(
         icon: const Icon(Icons.auto_awesome, color: Color(0xff1fddb9)),
         tooltip: 'Generate with AI',
-        onPressed: () => showAiTypeGenerator(context, refresh),
+        onPressed: () => startAiTypeGeneration(context, onDone: refresh),
       ),
     ]),
     floatingActionButton: FloatingActionButton.extended(onPressed: () => edit(), icon: const Icon(Icons.add), label: const Text('Add type')),

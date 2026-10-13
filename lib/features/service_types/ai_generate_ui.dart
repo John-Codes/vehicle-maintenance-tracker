@@ -1,96 +1,48 @@
 import 'package:flutter/material.dart';
 
 import '../../core/api_client.dart';
+import 'ai_status.dart';
+import 'ai_type_dialog.dart';
 
-/// "Generate with AI": brand/model/year in, the AI drafts a general
-/// maintenance checklist for that exact vehicle via the backend's
-/// OpenRouter call. Shows the reference-purposes-only disclaimer.
-Future<void> showAiTypeGenerator(BuildContext context, VoidCallback onCreated) async {
-  final brand = TextEditingController();
-  final model = TextEditingController();
-  final year = TextEditingController();
-  final result = await showDialog<String>(
-    context: context,
-    barrierDismissible: false,
-    builder: (_) => _AiTypeDialog(brand: brand, model: model, year: year),
-  );
-  if (result != null && context.mounted) {
-    await showDialog(context: context, builder: (_) => AlertDialog(
-      title: const Text('Checklist created 🎉'),
-      content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(result),
-        const SizedBox(height: 12),
-        const Text('Reference purposes only: always confirm against the '
-            "manufacturer's manual and your shop's procedures.",
-            style: TextStyle(fontStyle: FontStyle.italic)),
-      ]),
-      actions: [FilledButton(onPressed: () => Navigator.pop(context), child: const Text('OK'))],
-    ));
-    onCreated();
+var _generating = false;
+
+/// Non-blocking AI generation: a short dialog collects the vehicle info and
+/// closes immediately; generation runs under the hood with the subtle
+/// "AI is working" pill showing app-wide. A toast announces success (with
+/// the reference-purposes-only disclaimer) or failure.
+Future<void> startAiTypeGeneration(BuildContext context, {
+  String prefillBrand = '',
+  String prefillModel = '',
+  String prefillYear = '',
+  VoidCallback? onDone,
+}) async {
+  final messenger = ScaffoldMessenger.of(context);
+  if (_generating) {
+    messenger.showSnackBar(const SnackBar(
+        content: Text('Already generating a checklist — hang tight, you can keep working.')));
+    return;
   }
-  brand.dispose();
-  model.dispose();
-  year.dispose();
-}
-
-class _AiTypeDialog extends StatefulWidget {
-  final TextEditingController brand, model, year;
-  const _AiTypeDialog({required this.brand, required this.model, required this.year});
-  @override
-  State<_AiTypeDialog> createState() => _AiTypeDialogState();
-}
-
-class _AiTypeDialogState extends State<_AiTypeDialog> {
-  var busy = false;
-
-  Future<void> generate() async {
-    final parsedYear = int.tryParse(widget.year.text.trim());
-    if (widget.brand.text.trim().isEmpty ||
-        widget.model.text.trim().isEmpty ||
-        parsedYear == null || parsedYear < 1900 || parsedYear > 2100) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Enter the brand, model, and a valid year.')));
-      return;
-    }
-    setState(() => busy = true);
+  final info = await showAiTypeDialog(context,
+      prefillBrand: prefillBrand, prefillModel: prefillModel, prefillYear: prefillYear);
+  if (info == null) return;
+  final (brand, model, year) = info;
+  _generating = true;
+  aiStatusNotifier.value = AiJob('$year $brand $model');
+  () async {
     try {
-      final data = Map<String, dynamic>.from((await ApiClient().post(
+      final data = Map<String, dynamic>.from((await ApiClient().postOnce(
           '/service-types/ai-generate',
-          {'brand': widget.brand.text.trim(), 'model': widget.model.text.trim(), 'year': parsedYear})) as Map);
+          {'brand': brand, 'model': model, 'year': int.parse(year)})) as Map);
       final type = Map<String, dynamic>.from(data['type']);
-      if (mounted) Navigator.pop(context, '"${type['name']}" was added to your types.');
+      messenger.showSnackBar(SnackBar(
+          content: Text('"${type['name']}" was added to your types ✓ '
+              'Reference purposes only — confirm against the manual.')));
+      onDone?.call();
     } catch (err) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$err')));
-        setState(() => busy = false);
-      }
+      messenger.showSnackBar(SnackBar(content: Text('AI generation failed: $err')));
+    } finally {
+      aiStatusNotifier.value = null;
+      _generating = false;
     }
-  }
-
-  @override
-  Widget build(BuildContext context) => AlertDialog(
-        title: const Text('Generate with AI'),
-        content: Column(mainAxisSize: MainAxisSize.min, children: [
-          TextField(controller: widget.brand, enabled: !busy,
-              decoration: const InputDecoration(labelText: 'Brand (e.g. Toyota)')),
-          const SizedBox(height: 16),
-          TextField(controller: widget.model, enabled: !busy,
-              decoration: const InputDecoration(labelText: 'Model (e.g. Prius)')),
-          const SizedBox(height: 16),
-          TextField(controller: widget.year, enabled: !busy, keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Year (e.g. 2012)')),
-          if (busy) ...[
-            const SizedBox(height: 20),
-            const CircularProgressIndicator(),
-            const SizedBox(height: 12),
-            const Text('AI is getting the general maintenance information — hang tight',
-                textAlign: TextAlign.center),
-          ],
-        ]),
-        actions: [
-          if (!busy) TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          if (!busy) FilledButton.icon(onPressed: generate,
-              icon: const Icon(Icons.auto_awesome), label: const Text('Generate')),
-        ],
-      );
+  }();
 }

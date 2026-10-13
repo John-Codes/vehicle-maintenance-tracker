@@ -10,8 +10,9 @@ class RecordFormFields extends StatelessWidget {
   final TextEditingController vehicle, vin, plate, miles, hours, service, workers, brand, model, year;
   final LastServiceInfo last;
   final ValueChanged<ServiceType> onType;
+  final VoidCallback? onGenerateAi;
   final VoidCallback onVehicle;
-  const RecordFormFields({super.key, required this.vehicle, required this.vin, required this.plate, required this.miles, required this.hours, required this.service, required this.workers, required this.brand, required this.model, required this.year, required this.last, required this.onType, required this.onVehicle});
+  const RecordFormFields({super.key, required this.vehicle, required this.vin, required this.plate, required this.miles, required this.hours, required this.service, required this.workers, required this.brand, required this.model, required this.year, required this.last, required this.onType, required this.onVehicle, this.onGenerateAi});
 
   @override
   Widget build(BuildContext context) => Column(children: [
@@ -23,6 +24,12 @@ class RecordFormFields extends StatelessWidget {
         Row(children: [Expanded(child: TextField(controller: vin, decoration: const InputDecoration(labelText: 'VIN'), textCapitalization: TextCapitalization.characters)), const SizedBox(width: 12), Expanded(child: TextField(controller: plate, decoration: const InputDecoration(labelText: 'License plate'), textCapitalization: TextCapitalization.characters))]),
         Row(children: [Expanded(child: TextField(controller: miles, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Miles'))), const SizedBox(width: 12), Expanded(child: TextField(controller: hours, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Hours')))]),
         ServiceTypePicker(onSelected: onType),
+        if (onGenerateAi != null)
+          Align(alignment: Alignment.centerRight, child: IconButton(
+            icon: const Icon(Icons.auto_awesome, color: Color(0xff1fddb9)),
+            tooltip: 'Generate a type with AI for this vehicle',
+            onPressed: onGenerateAi,
+          )),
         TextField(controller: service, decoration: const InputDecoration(labelText: 'Vehicle/equipment type (custom text)')),
         TextField(controller: workers, decoration: const InputDecoration(labelText: 'Worker names (comma separated)')),
       ]);

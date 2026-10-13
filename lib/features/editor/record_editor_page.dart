@@ -8,6 +8,7 @@ import '../service_types/service_type.dart';
 import '../service_types/template_changes.dart';
 import '../records/records_repository.dart';
 import '../records/service_record.dart';
+import '../service_types/ai_generate_ui.dart';
 import '../telemetry/telemetry_card.dart';
 import '../vehicle_service_history/vehicle_service_history.dart';
 import 'record_form_fields.dart';
@@ -95,7 +96,10 @@ class _RecordEditorPageState extends State<RecordEditorPage> {
         IconButton(onPressed: save, icon: const Icon(Icons.save)),
       ]),
       body: ListView(padding: const EdgeInsets.all(16), children: [
-        RecordFormFields(vehicle: vehicle, vin: vin, plate: plate, miles: miles, hours: hours, service: service, workers: workers, brand: brand, model: model, year: year, last: last, onType: applyServiceType, onVehicle: () => setState(() {})),
+        RecordFormFields(vehicle: vehicle, vin: vin, plate: plate, miles: miles, hours: hours, service: service, workers: workers, brand: brand, model: model, year: year, last: last, onType: applyServiceType, onVehicle: () => setState(() {}),
+          onGenerateAi: () => startAiTypeGeneration(context,
+              prefillBrand: brand.text.trim(), prefillModel: model.text.trim(),
+              prefillYear: year.text.trim())),
         const SizedBox(height: 12),
         TelemetryCard(record: record, onSave: _telemetryUpdated),
         const Text('Inspection', style: TextStyle(fontWeight: FontWeight.bold)),
