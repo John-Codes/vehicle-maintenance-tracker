@@ -50,6 +50,9 @@ class ServiceRecord(BaseModel):
     vehicle_number: str = ''
     vehicle_type: str = Field(default='', pattern='^(car|truck|heavy_equipment|motorcycle|other|)$')
     scanner: dict = Field(default_factory=dict)
+    brand: str = Field(default='', max_length=60)
+    model: str = Field(default='', max_length=60)
+    year: Optional[int] = Field(default=None, ge=1900, le=2100)
     miles: Optional[float] = Field(None, ge=0)
     hours: Optional[float] = Field(None, ge=0)
     date_started: str = ''

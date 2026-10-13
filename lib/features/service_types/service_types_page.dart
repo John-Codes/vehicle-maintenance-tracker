@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'service_type.dart';
 import 'service_types_repository.dart';
 import 'service_type_editor.dart';
+import 'ai_generate_ui.dart';
 import 'vehicle_emoji.dart';
 
 // UI label: "vehicle/equipment type" — the data field is still `service_type` (API: /service-types).
@@ -31,7 +32,13 @@ class _ServiceTypesPageState extends State<ServiceTypesPage> {
     finally { if (mounted) setState(() => deleting = false); }
   }
   @override Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Vehicle/equipment types')),
+    appBar: AppBar(title: const Text('Vehicle/equipment types'), actions: [
+      IconButton(
+        icon: const Icon(Icons.auto_awesome, color: Color(0xff1fddb9)),
+        tooltip: 'Generate with AI',
+        onPressed: () => showAiTypeGenerator(context, refresh),
+      ),
+    ]),
     floatingActionButton: FloatingActionButton.extended(onPressed: () => edit(), icon: const Icon(Icons.add), label: const Text('Add type')),
     body: FutureBuilder<List<ServiceType>>(future: types, builder: (_, snapshot) {
       if (snapshot.connectionState != ConnectionState.done) return const Center(child: CircularProgressIndicator());
