@@ -35,7 +35,7 @@ class _ServiceTypesPageState extends State<ServiceTypesPage> {
     appBar: AppBar(title: const Text('Vehicle/equipment types'), actions: [
       IconButton(
         icon: const Icon(Icons.auto_awesome, color: Color(0xff1fddb9)),
-        tooltip: 'Generate with AI',
+        tooltip: 'Get basic maintenance information with AI',
         onPressed: () => startAiTypeGeneration(context, onDone: refresh),
       ),
     ]),

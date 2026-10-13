@@ -2,8 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-/// App-wide "AI is working" state. Null = idle; non-null while a checklist
-/// generation runs in the background.
+import 'ai_status_sweep.dart';
+
+/// App-wide "AI is working" state (null = idle).
 class AiJob {
   final String label;
   final DateTime startedAt;
@@ -12,24 +13,25 @@ class AiJob {
 
   String get elapsed {
     final seconds = DateTime.now().difference(startedAt).inSeconds;
-    final minutes = seconds ~/ 60;
-    if (minutes >= 1) return '${minutes}m ${seconds % 60}s';
-    return '$seconds s';
+    return seconds >= 60 ? '${seconds ~/ 60}m ${seconds % 60}s' : '$seconds s';
   }
 }
 
 final aiStatusNotifier = ValueNotifier<AiJob?>(null);
 
-/// Subtle floating pill: "AI is working for you… (1m 20s)". Mounted once in
-/// the app builder so it shows on every page; IgnorePointer means it can
-/// never block a tap.
+/// Pill floating above the bottom nav: small text, sparkle icon, and a
+/// fast colorful sweep. Never blocks taps (IgnorePointer).
 class AiStatusPill extends StatefulWidget {
   const AiStatusPill({super.key});
   @override
   State<AiStatusPill> createState() => _AiStatusPillState();
 }
 
-class _AiStatusPillState extends State<AiStatusPill> {
+class _AiStatusPillState extends State<AiStatusPill>
+    with SingleTickerProviderStateMixin {
+  late final _sweep = AnimationController(
+      vsync: this, duration: const Duration(milliseconds: 1250))
+    ..repeat();
   Timer? _ticker;
 
   @override
@@ -40,6 +42,7 @@ class _AiStatusPillState extends State<AiStatusPill> {
 
   @override
   void dispose() {
+    _sweep.dispose();
     _ticker?.cancel();
     super.dispose();
   }
@@ -49,26 +52,48 @@ class _AiStatusPillState extends State<AiStatusPill> {
         valueListenable: aiStatusNotifier,
         builder: (context, job, child) => IgnorePointer(
           child: AnimatedSlide(
-            offset: job == null ? const Offset(0, 1.6) : Offset.zero,
-            duration: const Duration(milliseconds: 350),
+            offset: job == null ? const Offset(0, 2) : Offset.zero,
+            duration: const Duration(milliseconds: 400),
             curve: Curves.easeOutCubic,
             child: Align(
               alignment: Alignment.bottomCenter,
-              child: Container(
-                margin: const EdgeInsets.only(bottom: 88),
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                decoration: BoxDecoration(
-                  color: const Color(0xff0b7c66),
-                  borderRadius: BorderRadius.circular(30),
-                  boxShadow: const [BoxShadow(color: Color(0x40000000), blurRadius: 10)],
+              // Material wrapper: gives the text a proper style and kills
+              // Flutter's raw-text yellow underline.
+              child: Material(
+                type: MaterialType.transparency,
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 86),
+                  height: 38,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(24),
+                    gradient: const LinearGradient(colors: [
+                      Color(0xff0f1c49), Color(0xff0b7c66)
+                    ]),
+                    boxShadow: const [
+                      BoxShadow(color: Color(0x4d1fddb9), blurRadius: 14, spreadRadius: -3)
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(24),
+                    child: Stack(children: [
+                      Positioned.fill(child: AiStatusSweep(controller: _sweep)),
+                      Row(mainAxisSize: MainAxisSize.min, children: [
+                        const Icon(Icons.auto_awesome,
+                            size: 14, color: Color(0xff7ff5dc)),
+                        const SizedBox(width: 7),
+                        Text(
+                          'AI is gathering maintenance information… ${job?.elapsed ?? ""}',
+                          style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                              letterSpacing: 0.2),
+                        ),
+                      ]),
+                    ]),
+                  ),
                 ),
-                child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  const SizedBox(width: 14, height: 14,
-                      child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white)),
-                  const SizedBox(width: 10),
-                  Text('AI is working for you… (${job?.elapsed ?? ""})',
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-                ]),
               ),
             ),
           ),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 /// Short-lived dialog that collects brand/model/year and returns them as a
 /// (brand, model, year) triple, or null when cancelled. Neutral placeholders
-/// only — no hardcoded examples.
+/// only — no hardcoded examples, no developer jargon.
 Future<(String, String, String)?> showAiTypeDialog(BuildContext context, {
   String prefillBrand = '',
   String prefillModel = '',
@@ -48,7 +48,7 @@ class _AiTypeDialogState extends State<_AiTypeDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-        title: const Text('Generate with AI'),
+        title: const Text('Get basic maintenance information with AI'),
         content: Column(mainAxisSize: MainAxisSize.min, children: [
           TextField(controller: brand, autofocus: widget.brand.isEmpty,
               decoration: const InputDecoration(labelText: 'Brand'),
@@ -65,7 +65,7 @@ class _AiTypeDialogState extends State<_AiTypeDialog> {
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
           FilledButton.icon(onPressed: _submit,
-              icon: const Icon(Icons.auto_awesome), label: const Text('Generate checklist')),
+              icon: const Icon(Icons.auto_awesome), label: const Text('Get maintenance info')),
         ],
       );
 }
