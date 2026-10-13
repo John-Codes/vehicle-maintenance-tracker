@@ -8,6 +8,7 @@ import '../service_types/service_type.dart';
 import '../service_types/template_changes.dart';
 import '../records/records_repository.dart';
 import '../records/service_record.dart';
+import '../telemetry/telemetry_card.dart';
 import '../vehicle_service_history/vehicle_service_history.dart';
 import 'record_form_fields.dart';
 import 'record_values.dart';
@@ -59,6 +60,12 @@ class _RecordEditorPageState extends State<RecordEditorPage> {
     if (mounted) setState(() {});
   }
   void _scheduleChanged(MaintenanceSchedule schedule) { record = record.copyWith(schedule: schedule); autosave.touch(); setState(() {}); }
+  void _telemetryUpdated(ServiceRecord updated) {
+    record = updated;
+    miles.text = '${updated.miles ?? ''}';
+    hours.text = '${updated.hours ?? ''}';
+    setState(() {});
+  }
   Future<void> save() async {
     record = await repo.save(values());
     await autosave.clearDraft(record.id);
@@ -86,6 +93,7 @@ class _RecordEditorPageState extends State<RecordEditorPage> {
       body: ListView(padding: const EdgeInsets.all(16), children: [
         RecordFormFields(vehicle: vehicle, vin: vin, plate: plate, miles: miles, hours: hours, service: service, workers: workers, last: last, onType: applyServiceType, onVehicle: () => setState(() {})),
         const SizedBox(height: 12),
+        TelemetryCard(record: record, onSave: _telemetryUpdated),
         const Text('Inspection', style: TextStyle(fontWeight: FontWeight.bold)),
         InspectionLists(schedule: record.schedule, onChanged: _scheduleChanged, onCommitted: autosave.flush),
         TextField(controller: notes, maxLines: 3, decoration: const InputDecoration(labelText: 'Notes')),

@@ -2,7 +2,8 @@ import '../maintenance_lists/maintenance_schedule.dart';
 import '../profile/technician.dart';
 
 class ServiceRecord {
-  final String id, vehicleNumber, serviceType, dateStarted, notes, nextSteps, vin, licensePlate;
+  final String id, vehicleNumber, vehicleType, serviceType, dateStarted, notes, nextSteps, vin, licensePlate;
+  final Map<String, dynamic> scanner;
   final num? miles, hours;
   final List<String> workerNames;
   final Technician technician;
@@ -10,6 +11,8 @@ class ServiceRecord {
   const ServiceRecord({
     this.id = '',
     this.vehicleNumber = '',
+    this.vehicleType = '',
+    this.scanner = const {},
     this.serviceType = '',
     required this.dateStarted,
     this.miles,
@@ -25,6 +28,8 @@ class ServiceRecord {
   factory ServiceRecord.fromJson(Map j) => ServiceRecord(
         id: j['id'] ?? '',
         vehicleNumber: j['vehicle_number'] ?? '',
+        vehicleType: j['vehicle_type'] ?? '',
+        scanner: Map<String, dynamic>.from(j['scanner'] ?? {}),
         serviceType: j['service_type'] ?? '',
         dateStarted: j['date_started'] ?? '',
         miles: j['miles'],
@@ -39,6 +44,8 @@ class ServiceRecord {
       );
   Map<String, dynamic> toJson() => {
         'vehicle_number': vehicleNumber,
+        'vehicle_type': vehicleType,
+        'scanner': scanner,
         'service_type': serviceType,
         'date_started': dateStarted,
         'miles': miles,
@@ -53,6 +60,8 @@ class ServiceRecord {
       };
   ServiceRecord copyWith({
     String? vehicleNumber,
+    String? vehicleType,
+    Map<String, dynamic>? scanner,
     String? serviceType,
     num? miles,
     num? hours,
@@ -69,6 +78,8 @@ class ServiceRecord {
         dateStarted: dateStarted,
         technician: technician ?? this.technician,
         vehicleNumber: vehicleNumber ?? this.vehicleNumber,
+        vehicleType: vehicleType ?? this.vehicleType,
+        scanner: scanner ?? this.scanner,
         serviceType: serviceType ?? this.serviceType,
         miles: miles ?? this.miles,
         hours: hours ?? this.hours,

@@ -3,6 +3,9 @@ import '../service_types/service_type.dart';
 import '../service_types/service_type_picker.dart';
 import '../vehicle_service_history/vehicle_service_history.dart';
 
+// UI label: "vehicle/equipment type" — the data field is still `service_type` (API: /service-types).
+// Renamed at the UI level only, per BRANCH_UPDATE_RULES; no backend/data changes.
+
 class RecordFormFields extends StatelessWidget {
   final TextEditingController vehicle, vin, plate, miles, hours, service, workers;
   final LastServiceInfo last;
@@ -19,7 +22,7 @@ class RecordFormFields extends StatelessWidget {
         Row(children: [Expanded(child: TextField(controller: vin, decoration: const InputDecoration(labelText: 'VIN'), textCapitalization: TextCapitalization.characters)), const SizedBox(width: 12), Expanded(child: TextField(controller: plate, decoration: const InputDecoration(labelText: 'License plate'), textCapitalization: TextCapitalization.characters))]),
         Row(children: [Expanded(child: TextField(controller: miles, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Miles'))), const SizedBox(width: 12), Expanded(child: TextField(controller: hours, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Hours')))]),
         ServiceTypePicker(onSelected: onType),
-        TextField(controller: service, decoration: const InputDecoration(labelText: 'Service type (custom text)')),
+        TextField(controller: service, decoration: const InputDecoration(labelText: 'Vehicle/equipment type (custom text)')),
         TextField(controller: workers, decoration: const InputDecoration(labelText: 'Worker names (comma separated)')),
       ]);
 }

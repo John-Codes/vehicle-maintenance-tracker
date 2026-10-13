@@ -4,9 +4,10 @@ import '../../core/large_display.dart';
 import '../auth/auth_controller.dart';
 import '../../core/cold_start_notice.dart';
 import '../editor/record_editor_page.dart';
-import 'miles_update_page.dart';
+import '../telemetry/miles_source_sheet.dart';
 import 'add_vehicle_fab.dart';
 import 'record_search_bar.dart';
+import '../service_types/vehicle_emoji.dart';
 import 'records_repository.dart';
 import 'service_record.dart';
 
@@ -22,11 +23,22 @@ class _RecordsPageState extends State<RecordsPage> {
     searchDebounce?.cancel();
     searchDebounce = Timer(const Duration(milliseconds: 300), () => setState(() { searchText = text; records = repo.list(search: searchText); }));
   }
-  Future<void> create() async { final record = await repo.create(); if (mounted) { await Navigator.push(context, MaterialPageRoute(builder: (_) => RecordEditorPage(record: record))); refresh(); } }
+  Future<void> create(String vehicleType) async {
+    var record = await repo.create();
+    if (vehicleType.isNotEmpty) {
+      record = await repo.save(record.copyWith(vehicleType: vehicleType));
+    }
+    if (mounted) { await Navigator.push(context, MaterialPageRoute(builder: (_) => RecordEditorPage(record: record))); refresh(); }
+  }
   Future<void> logMiles(ServiceRecord r) async {
-    final updated = await Navigator.push<ServiceRecord>(context,
-        MaterialPageRoute(builder: (_) => MilesUpdatePage(record: r)));
-    if (updated != null) { await repo.save(updated); refresh(); }
+    await showMilesSourceSheet(context, r, (updated) async {
+      if (updated.miles != r.miles) {
+        await repo.save(updated);
+      } else if (updated.scanner != r.scanner) {
+        await repo.save(updated);
+      }
+      refresh();
+    });
   }
   Future<void> confirmDelete(ServiceRecord r) async {
     final yes = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
@@ -45,6 +57,11 @@ class _RecordsPageState extends State<RecordsPage> {
       if (snap.hasError) return Center(child: Text('Could not load records\n${snap.error}\nIf the free-tier database was asleep, try again.', textAlign: TextAlign.center));
       if (snap.data!.isEmpty) return Center(child: Text(searchText.isEmpty ? 'Start your first service record.' : 'No records match "$searchText".'));
       return ListView.builder(itemCount: snap.data!.length, itemBuilder: (_, i) { final r = snap.data![i]; final leaves = r.schedule.leaves; final done = leaves.where((x) => x.done).length;       final tile = ListTile(minVerticalPadding: biggerTextButtonsEnabled ? 12 : null, contentPadding: biggerTextButtonsEnabled ? const EdgeInsets.symmetric(horizontal: 20, vertical: 8) : null,
+          // Emoji-first rows; explicit vehicle_type wins, else inferred
+          // from the vehicle/equipment type name.
+          leading: Text(vehicleEmojiFor(
+              vehicleType: r.vehicleType, vehicleTypeName: r.serviceType),
+              style: const TextStyle(fontSize: 26)),
           title: Text(r.vehicleNumber.isEmpty ? 'New service record' : r.vehicleNumber), subtitle: Text('${r.dateStarted.split('T').first} · $done/${leaves.length} complete'),
           trailing: Row(mainAxisSize: MainAxisSize.min, children: [
             IconButton(icon: const Icon(Icons.speed_outlined, color: Color(0xff12b394)),
