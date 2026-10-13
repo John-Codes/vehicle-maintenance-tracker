@@ -78,9 +78,6 @@ class _InspectionListsState extends State<InspectionLists> {
         for (final component in list.components)
           ComponentBlock(
             component: component,
-            onStep: (step) => write(id, replaceStep(list, component.id, step)),
-            onDelete: (stepId) => write(id, deleteStep(list, component.id, stepId)),
-            onAdd: () => write(id, addStep(list, component.id)),
             onToggle: (done) => toggleComponent(id, list, component.id, done),
             onComponentChanged: (c) => write(id, replaceComponent(list, component.id, c)),
             onCommitted: widget.onCommitted,

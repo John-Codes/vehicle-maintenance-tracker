@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../features/auth/auth_controller.dart';
 import '../features/chat/chat_page.dart';
 import '../features/profile/settings_page.dart';
 import '../features/records/records_page.dart';
-import '../features/team/team_page.dart';
 
-/// Bottom-nav shell. Managers get an extra Team tab.
+/// Bottom-nav shell. Team management lives in Settings.
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
   @override
@@ -18,11 +16,9 @@ class _HomeShellState extends State<HomeShell> {
 
   @override
   Widget build(BuildContext context) {
-    final isManager = AuthController.instance.user?.isManager ?? false;
     final pages = [
       const RecordsPage(),
       const ChatPage(),
-      if (isManager) const TeamPage(),
       const SettingsPage(),
     ];
     return Scaffold(
@@ -33,8 +29,6 @@ class _HomeShellState extends State<HomeShell> {
         destinations: [
           const NavigationDestination(icon: Icon(Icons.build_outlined), label: 'Records'),
           const NavigationDestination(icon: Icon(Icons.chat_bubble_outline), label: 'Chat'),
-          if (isManager)
-            const NavigationDestination(icon: Icon(Icons.group_outlined), label: 'Team'),
           const NavigationDestination(icon: Icon(Icons.person_outline), label: 'Settings'),
         ],
       ),
