@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'ai_status_marquee.dart';
 import 'ai_status_sweep.dart';
 
 /// App-wide "AI is working" state (null = idle).
@@ -52,18 +53,19 @@ class _AiStatusPillState extends State<AiStatusPill>
         valueListenable: aiStatusNotifier,
         builder: (context, job, child) => IgnorePointer(
           child: AnimatedSlide(
-            offset: job == null ? const Offset(0, 2) : Offset.zero,
+            offset: job == null ? const Offset(0, -2) : Offset.zero,
             duration: const Duration(milliseconds: 400),
             curve: Curves.easeOutCubic,
             child: Align(
-              alignment: Alignment.bottomCenter,
+              alignment: Alignment.topCenter,
               // Material wrapper: gives the text a proper style and kills
               // Flutter's raw-text yellow underline.
               child: Material(
                 type: MaterialType.transparency,
                 child: Container(
-                  margin: const EdgeInsets.only(bottom: 86),
+                  margin: const EdgeInsets.only(top: 12),
                   height: 38,
+                  constraints: const BoxConstraints(maxWidth: 340),
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(24),
@@ -78,17 +80,19 @@ class _AiStatusPillState extends State<AiStatusPill>
                     borderRadius: BorderRadius.circular(24),
                     child: Stack(children: [
                       Positioned.fill(child: AiStatusSweep(controller: _sweep)),
-                      Row(mainAxisSize: MainAxisSize.min, children: [
+                      Row(children: [
                         const Icon(Icons.auto_awesome,
                             size: 14, color: Color(0xff7ff5dc)),
                         const SizedBox(width: 7),
-                        Text(
-                          'AI is gathering maintenance information… ${job?.elapsed ?? ""}',
-                          style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                              letterSpacing: 0.2),
+                        Expanded(
+                          child: AiStatusMarquee(
+                            text: 'AI is gathering maintenance information… ${job?.elapsed ?? ""}',
+                            style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                                letterSpacing: 0.2),
+                          ),
                         ),
                       ]),
                     ]),
