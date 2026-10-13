@@ -48,6 +48,8 @@ API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" backend/.venv/bin/python b
 if [ -n "${OPENROUTER_API_KEY:-}" ]; then
   API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" backend/.venv/bin/python backend/e2e_ai_types.py
 fi
+API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" backend/.venv/bin/python backend/e2e_workspace_auto_assign.py
+API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" backend/.venv/bin/python backend/e2e_workspace_switching.py
 
 echo "== clearing e2e users so the first reviewer signs in as manager =="
 docker exec "$MONGO_CONTAINER" mongosh --quiet chat_gpt_tracker_local --eval 'db.users.drop(); db.invites.drop()' >/dev/null 2>&1 || true
