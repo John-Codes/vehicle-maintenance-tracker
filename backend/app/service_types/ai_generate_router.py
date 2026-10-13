@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 
@@ -37,8 +38,9 @@ async def ai_generate(request: AiTypeRequest, x_app_key: str = Header(default=''
     prompt = build_generation_prompt(request.brand, request.model, request.year)
     created = None
     reply = ''
-    # Free-tier models occasionally return an empty first reply; retry once.
-    for _ in range(2):
+    # Free-tier models occasionally return empty replies (especially from
+    # rate-limited IPs); retry with a pause so a new rate window opens.
+    for attempt in range(3):
         try:
             reply = await complete(prompt, [
                 {'role': 'user', 'content': f'Create the maintenance type for the {vehicle} now.'}],
@@ -50,6 +52,8 @@ async def ai_generate(request: AiTypeRequest, x_app_key: str = Header(default=''
             created = await _find_created_type(vehicle)
             if created is not None:
                 break
+            if attempt < 2:
+                await asyncio.sleep(10)
     if created is None:
         raise HTTPException(502, 'The AI could not create the type. Its reply: ' + reply[:300])
     return {'type': created, 'disclaimer': DISCLAIMER}

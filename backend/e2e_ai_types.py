@@ -49,12 +49,21 @@ def main():
     print('ai-generate guards ok')
 
     # Real generation: the LLM must produce a schema-valid saved type
-    print(f'asking the AI for a {VEHICLE} checklist (this can take a minute)...')
+    print(f'asking the AI for a {VEHICLE} checklist (this can take a few minutes)...')
     started = time.time()
-    status, payload = call('POST', '/service-types/ai-generate',
-                           {'brand': 'Toyota', 'model': 'Prius', 'year': 2012},
-                           timeout=330)
-    assert status == 200, status
+    payload = None
+    for attempt in range(2):
+        try:
+            status, payload = call('POST', '/service-types/ai-generate',
+                                   {'brand': 'Toyota', 'model': 'Prius', 'year': 2012},
+                                   timeout=780)
+            assert status == 200, status
+            break
+        except SystemExit as err:
+            if '502' not in str(err) or attempt == 1:
+                raise
+            print('free model returned empty; pausing before the retry...')
+            time.sleep(60)
     created = payload['type']
     assert 'reference purposes only' in payload['disclaimer'], payload
     print(f'generated in {time.time() - started:.0f}s -> "{created["name"]}"')
