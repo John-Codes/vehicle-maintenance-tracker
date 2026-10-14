@@ -18,7 +18,13 @@ class ApiClient {
   Future<dynamic> put(String path, Object body) => _send('PUT', path, body);
   Future<void> delete(String path) async => _send('DELETE', path);
 
-  Future<dynamic> _send(String method, String path, [Object? body]) async {
+  /// One-shot POST: no automatic retry on server errors. Use for slow,
+  /// expensive calls (e.g. AI generation) where retrying would duplicate work.
+  Future<dynamic> postOnce(String path, Object body) =>
+      _send('POST', path, body, false);
+
+  Future<dynamic> _send(String method, String path, [Object? body,
+      bool retryServerErrors = true]) async {
     for (var attempt = 0; attempt <= _backoffSeconds.length; attempt++) {
       try {
         final request = http.Request(method, Uri.parse('${AppConfig.apiUrl}$path'));
@@ -28,7 +34,7 @@ class ApiClient {
         if (body != null) request.body = jsonEncode(body);
         final response = await http.Response.fromStream(await _client.send(request));
         final retryable = response.statusCode == 429 || response.statusCode >= 500;
-        if (retryable && attempt < _backoffSeconds.length) {
+        if (retryable && retryServerErrors && attempt < _backoffSeconds.length) {
           coldStart.value = true;
           await Future.delayed(Duration(seconds: _backoffSeconds[attempt]));
           continue;

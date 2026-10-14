@@ -11,12 +11,13 @@ OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions'
 MAX_TOOL_ROUNDS = 6
 
 
-async def complete(system_prompt: str, messages: list, tools=None) -> str:
+async def complete(system_prompt: str, messages: list, tools=None, model: str = '', stop_after_tool: str = '', timeout: int = 90) -> str:
     if not OPENROUTER_API_KEY:
         raise HTTPException(503, 'Chat is not configured: set OPENROUTER_API_KEY')
     conversation = [{'role': 'system', 'content': system_prompt}, *messages]
+    target_model = model or CHAT_MODEL
     for _ in range(MAX_TOOL_ROUNDS):
-        pack = await _call(conversation, tools)
+        pack = await _call(conversation, tools, target_model, timeout)
         tool_calls = pack.get('tool_calls') or []
         if not tool_calls:
             content = (pack.get('content') or '').strip()
@@ -32,19 +33,23 @@ async def complete(system_prompt: str, messages: list, tools=None) -> str:
             except json.JSONDecodeError:
                 args = {}
             result = await run_tool(function.get('name', ''), args if isinstance(args, dict) else {})
+            # One-shot flows (e.g. AI type generation) end as soon as the
+            # target tool succeeds — no extra LLM rounds needed.
+            if stop_after_tool and function.get('name') == stop_after_tool and '"error"' not in result:
+                return result
             conversation.append({'role': 'tool', 'tool_call_id': call.get('id', ''), 'content': result})
     raise HTTPException(502, 'LLM did not finish after multiple tool rounds')
 
 
-async def _call(conversation, tools) -> dict:
-    payload = {'model': CHAT_MODEL, 'messages': conversation}
+async def _call(conversation, tools, target_model, timeout) -> dict:
+    payload = {'model': target_model, 'messages': conversation}
     if tools:
         payload['tools'] = tools
     headers = {'Authorization': f'Bearer {OPENROUTER_API_KEY}'}
     last_error = 'unknown error'
     for attempt in range(2):
         try:
-            async with httpx.AsyncClient(timeout=90) as client:
+            async with httpx.AsyncClient(timeout=timeout) as client:
                 response = await client.post(OPENROUTER_URL, json=payload, headers=headers)
         except httpx.HTTPError as error:
             last_error = str(error)

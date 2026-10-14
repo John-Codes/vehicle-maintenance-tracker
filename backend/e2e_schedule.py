@@ -33,14 +33,27 @@ def main():
     _, saved = call('PUT', f"/service-records/{created['id']}", {k: v for k, v in created.items() if k not in ('id', 'record_type', 'created_at', 'updated_at')})
     assert saved['schedule']['daily']['last_done_at'] == '2026-10-06'
     assert saved['schedule']['daily']['components'][0]['steps'][0]['title'] == 'Oil level'
-    # Vehicle type + per-record scanner binding round-trip (additive, defaults safe)
-    saved['vehicle_type'] = 'truck'
+    # Vehicle identity + scanner binding round-trip (additive, defaults safe)
+    saved['brand'] = 'Toyota'
+    saved['model'] = 'Prius'
+    saved['year'] = 2012
+    saved['vehicle_type'] = 'car'
     saved['scanner'] = {'id': 'veepeak-ble', 'device_id': 'AA:BB:CC:11:22:33',
                         'kind': 'ble', 'paired_at': '2026-10-11T14:02:00Z',
                         'last_synced_at': '2026-10-11T18:40:00Z'}
     _, bound = call('PUT', f"/service-records/{created['id']}",
                     {k: v for k, v in saved.items() if k not in ('id', 'record_type', 'created_at', 'updated_at')})
-    assert bound['vehicle_type'] == 'truck' and bound['scanner']['device_id'] == 'AA:BB:CC:11:22:33', bound
+    assert bound['brand'] == 'Toyota' and bound['model'] == 'Prius' and bound['year'] == 2012, bound
+    assert bound['vehicle_type'] == 'car' and bound['scanner']['device_id'] == 'AA:BB:CC:11:22:33', bound
+    try:
+        saved['year'] = 1700
+        call('PUT', f"/service-records/{created['id']}",
+             {k: v for k, v in saved.items() if k not in ('id', 'record_type', 'created_at', 'updated_at')})
+        raise SystemExit('invalid year was accepted')
+    except SystemExit as err:
+        if '422' not in str(err):
+            raise
+    saved['year'] = 2012
     try:
         saved['vehicle_type'] = 'spaceship'
         call('PUT', f"/service-records/{created['id']}",
@@ -49,7 +62,7 @@ def main():
     except SystemExit as err:
         if '422' not in str(err):
             raise
-    saved['vehicle_type'] = 'truck'
+    saved['vehicle_type'] = 'car'
     _, listed = call('GET', '/service-records')
     assert any(item['id'] == created['id'] and 'steps' not in item for item in listed)
     try:

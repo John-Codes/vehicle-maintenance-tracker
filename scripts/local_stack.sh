@@ -33,6 +33,7 @@ fi
   APP_API_KEY="$KEY" CORS_ALLOWED_ORIGINS='*' \
   AUTH_MODE="${AUTH_MODE:-dev}" JWT_SECRET="${JWT_SECRET:-local-jwt-secret}" \
   FIREBASE_PROJECT_ID="${FIREBASE_PROJECT_ID:-fleet-tracker-9242a}" \
+  AI_TYPE_MODEL="${AI_TYPE_MODEL:-nvidia/nemotron-3-ultra-550b-a55b:free}" \
   OPENROUTER_API_KEY="${OPENROUTER_API_KEY:-}" CHAT_MODEL="${CHAT_MODEL:-nvidia/nemotron-3.5-lightning:free}" \
   exec setsid ../backend/.venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port $API_PORT ) > "$LOG_DIR/local-api.log" 2>&1 < /dev/null &
 echo $! > "$LOG_DIR/api.pid"
@@ -44,6 +45,9 @@ API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" OPENROUTER_API_KEY="${OPEN
 API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" OPENROUTER_API_KEY="${OPENROUTER_API_KEY:-}" backend/.venv/bin/python backend/e2e_time_tracking.py
 API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" backend/.venv/bin/python backend/e2e_auth.py
 API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" backend/.venv/bin/python backend/e2e_rbac.py
+if [ -n "${OPENROUTER_API_KEY:-}" ]; then
+  API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" backend/.venv/bin/python backend/e2e_ai_types.py
+fi
 API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" backend/.venv/bin/python backend/e2e_workspace_auto_assign.py
 API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" backend/.venv/bin/python backend/e2e_workspace_switching.py
 

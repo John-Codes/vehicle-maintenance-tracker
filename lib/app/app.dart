@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/large_display.dart';
 import '../features/auth/auth_gate.dart';
+import '../features/service_types/ai_status.dart';
 
 final themeNotifier = ValueNotifier<ThemeMode>(ThemeMode.dark);
 
@@ -32,7 +33,7 @@ class _TrackerAppState extends State<TrackerApp> {
               data: MediaQuery.of(context).copyWith(
                 textScaler: TextScaler.linear(bigger ? 1.1 : 1.0),
               ),
-              child: app!,
+              child: Stack(children: [app!, const AiStatusPill()]),
             ),
             child: child,
           ),

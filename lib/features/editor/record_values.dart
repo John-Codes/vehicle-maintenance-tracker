@@ -11,11 +11,17 @@ ServiceRecord buildRecordValues(
   required TextEditingController hours,
   required TextEditingController service,
   required TextEditingController workers,
+  required TextEditingController brand,
+  required TextEditingController model,
+  required TextEditingController year,
   required TextEditingController notes,
   required TextEditingController next,
 }) =>
     record.copyWith(
       vehicleNumber: vehicle.text,
+      brand: brand.text,
+      model: model.text,
+      year: int.tryParse(year.text.trim()),
       vin: vin.text,
       licensePlate: plate.text,
       serviceType: service.text,
