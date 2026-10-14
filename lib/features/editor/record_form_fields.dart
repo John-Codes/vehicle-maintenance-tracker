@@ -27,7 +27,7 @@ class RecordFormFields extends StatelessWidget {
         if (onGenerateAi != null)
           Align(alignment: Alignment.centerRight, child: IconButton(
             icon: const Icon(Icons.auto_awesome, color: Color(0xff1fddb9)),
-            tooltip: 'Generate a type with AI for this vehicle',
+            tooltip: 'Get basic maintenance information with AI',
             onPressed: onGenerateAi,
           )),
         TextField(controller: service, decoration: const InputDecoration(labelText: 'Vehicle/equipment type (custom text)')),
