@@ -1,6 +1,6 @@
 import logging
 
-from ..config import ALERT_EMAIL_TO, EMAIL_FROM
+from ..config import AGENTMAIL_INBOX_ID, ALERT_EMAIL_TO
 from .models import Message, MessageRecipient
 from .registry import channels
 
@@ -29,9 +29,9 @@ async def send_failure_alert(channel_name: str, error: Exception, message: Messa
                     text=f'A message failed to send.\n\n{detail}\n',
                     recipients=[MessageRecipient(email=ALERT_EMAIL_TO, name='Owner')],
                     context={'type': 'alert'})
-    if not EMAIL_FROM:
-        log.error('ALERT NOT SENT (no EMAIL_FROM): %s | %s', alert.subject, detail)
-        return {'ok': False, 'error': 'no EMAIL_FROM configured; alert logged only'}
+    if not AGENTMAIL_INBOX_ID:
+        log.error('ALERT NOT SENT (no AGENTMAIL_INBOX_ID): %s | %s', alert.subject, detail)
+        return {'ok': False, 'error': 'no AGENTMAIL_INBOX_ID configured; alert logged only'}
     try:
         from .channels.email_agentmail import AgentMailChannel
         return await AgentMailChannel().send(alert)

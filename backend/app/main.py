@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .auth.routers import auth, auth_dev
 from .config import CORS_ORIGINS
 from .invites import router as invites
+from .inspections_messages.router import router as inspections_messages
 from .routers import chat, profile, records, users
 from .scheduler import start_scheduler, stop_scheduler
 from .storage import store
@@ -27,6 +28,7 @@ app.include_router(auth.router)
 app.include_router(auth_dev.router)
 app.include_router(users.router)
 app.include_router(invites)
+app.include_router(inspections_messages)
 
 @app.get('/health')
 async def health(): return {'ok': True}
