@@ -1,0 +1,17 @@
+---
+import { COMING_SOON } from '../data/site';
+---
+<section>
+  <div class="wrap">
+    <span class="kicker">On the roadmap</span>
+    <h2>Coming soon.</h2>
+    <div class="grid cols-3" style="margin-top:32px;">
+      {COMING_SOON.map((item) => (
+        <div class="card" style="text-align:center;">
+          <div style="font-size:1.8rem;">{item.icon}</div>
+          <h3 style="margin-top:10px;">{item.title}</h3>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

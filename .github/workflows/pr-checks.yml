@@ -33,6 +33,11 @@ jobs:
         run: flutter pub get && flutter analyze --no-fatal-infos
       - name: Flutter tests
         run: flutter test
+      - name: Landing build check
+        working-directory: landing
+        run: |
+          npm ci
+          npm run build
       - name: Backend e2e against throwaway dev DB
         working-directory: backend
         run: |

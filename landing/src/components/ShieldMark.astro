@@ -1,0 +1,18 @@
+---
+// The SafePrevent shield: gradient teal shield with a white check,
+// same mark as the app (from assets-src/safeprevent_mark.svg).
+const { width = '28', height = '28' } = Astro.props;
+---
+<svg width={width} height={height} viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" aria-label="SafePrevent">
+  <defs>
+    <linearGradient id="sp-shield" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1FDDB9" />
+      <stop offset="0.55" stop-color="#12B394" />
+      <stop offset="1" stop-color="#0B7C66" />
+    </linearGradient>
+  </defs>
+  <path d="M256 40 L428 108 V252 C428 366 352 442 256 476 C160 442 84 366 84 252 V108 Z"
+        fill="url(#sp-shield)" />
+  <path d="M170 262 L232 330 L352 186" fill="none" stroke="#FFFFFF" stroke-width="42"
+        stroke-linecap="round" stroke-linejoin="round" />
+</svg>

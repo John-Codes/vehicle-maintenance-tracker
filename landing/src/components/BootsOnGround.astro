@@ -1,0 +1,33 @@
+---
+import ShieldMark from './ShieldMark.astro';
+---
+<section>
+  <div class="wrap" style="display:grid;gap:40px;align-items:center;" data-cols>
+    <div>
+      <span class="kicker">Boots on the ground</span>
+      <h2>Software watches.<br /><span class="accent">Pros show up.</span></h2>
+      <p class="lead" style="margin-top:22px;">
+        Preventive maintenance is not a notification — it is a person with tools
+        in their hands. Every plan includes prepaid professional hours: an
+        experienced mechanic handles the service your fleet actually needs,
+        before it becomes a tow bill.
+      </p>
+      <ul style="margin-top:22px;list-style:none;display:grid;gap:10px;color:var(--muted);">
+        <li>✓ Experienced, vetted maintenance professionals</li>
+        <li>✓ Hours pool across your whole fleet</li>
+        <li>✓ Scheduled around your routes — not the other way around</li>
+      </ul>
+    </div>
+    <div style="text-align:center;">
+      <div class="card" style="display:inline-block;padding:48px;">
+        <ShieldMark width="120" height="120" />
+        <p style="margin-top:18px;font-weight:700;font-size:1.1rem;">
+          One invoice. Zero breakdowns.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+<style>
+  @media (min-width: 860px) { section[data-cols] { grid-template-columns: 1.2fr 1fr; } }
+</style>
