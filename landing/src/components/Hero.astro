@@ -2,18 +2,23 @@
 import { APP_URL } from '../data/site';
 ---
 <section class="wrap" style="padding-top:72px;padding-bottom:72px;text-align:left;">
-  <span class="kicker">Fleet preventive maintenance · Made in the USA — Texas Proud</span>
+  <span class="kicker">Fleet preventive maintenance · Made in the USA · Texas Proud</span>
   <h1>Prevent the breakdown<br /><span class="accent">before it happens.</span></h1>
   <p class="lead" style="margin-top:26px;">
     <strong style="color:var(--white);">Software watches. Pros show up.</strong>
     Every vehicle tracked, every checklist done, and experienced professionals
     dispatched for hands-on preventive maintenance — all in one simple bundle.
   </p>
-  <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:36px;">
-    <a class="btn btn-primary" href="#pricing">See pricing — from $119/vehicle</a>
-    <a class="btn btn-ghost" href={APP_URL}>Open the app</a>
-  </div>
-  <p class="muted" style="margin-top:22px;font-size:0.95rem;">
-    Reliable. Dependable. Quality you can trust.
-  </p>
-</section>
+  <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:28px;">
+    <span class="trust-badge" style="display:inline-flex;align-items:center;gap:8px;padding:8px 16px;background:rgba(255,255,255,0.08);border-radius:999px;font-size:0.85rem;font-weight:600;color:var(--teal);">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 9.5 4.147A9 9 0 0 1 15 12.25z"/><path d="M12 17v.01"/><path d="M9 12h.01"/></svg>
+      <span style="font-weight:600;">Powered by CANedge</span>
+    </div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:24px;">
+      <a class="btn btn-primary" href="#pricing">See pricing — from $119/vehicle/mo</a>
+      <a class="btn btn-ghost" href={APP_URL}>Open the app</a>
+    </div>
+    <p class="muted" style="margin-top:18px;font-size:0.9rem;">
+      Reliable. Dependable. Quality you can trust.
+    </p>
+  </section>
