@@ -37,6 +37,34 @@ export const BUNDLE = [
   { icon: '👥', title: 'Teams + roles', text: 'Managers and techs, invite-only workspaces, PDF & Excel reports.' },
 ];
 
+export const HARDWARE = {
+  intro: 'Powered by the CANedge data loggers by CSS Electronics — trusted by VW, '
+      + 'Cummins, and Thermo King. You never touch J1939 filters, DBC files, or SIMs: '
+      + 'we bring the AI and the technical expertise.',
+  kits: [
+    {
+      icon: '🏭',
+      name: 'Yard Kit',
+      price: 79,
+      device: 'CANedge2 (WiFi)',
+      text: 'For reclaimers, mud pumps, and heavy equipment at the depot. Uploads '
+          + 'when machines come in range of your yard WiFi — no data fees, ever.',
+    },
+    {
+      icon: '🚛',
+      name: 'Road Kit',
+      price: 95,
+      device: 'CANedge3 (cellular + GPS)',
+      text: 'For trucks and road vehicles. SIM and data are part of your monthly — '
+          + 'no extra bills, one invoice. Built-in GPS adds position, speed, and trip distance.',
+      featured: true,
+    },
+  ],
+  terms: '12-month term per vehicle. Hardware, professional installation, data, and '
+      + 'a 3-year warranty included. Devices remain SafePrevent property until the term '
+      + 'is paid out; refundable deposit collected at install.',
+};
+
 export const COMING_SOON = [
   { icon: '📝', title: 'DOT / ELD compliance' },
   { icon: '⛽', title: 'Fuel management' },
