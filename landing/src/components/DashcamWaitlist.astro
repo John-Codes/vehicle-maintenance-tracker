@@ -1,0 +1,43 @@
+---
+import { PHONE_DISPLAY, PHONE_TEL, EMAIL } from '../data/site';
+---
+<section class="alt">
+  <div class="wrap" style="text-align:center;max-width:760px;">
+    <span class="kicker">SafePrevent Cam · join the waitlist</span>
+    <h2>A professional dashcam.<br /><span class="accent">Installed. Configured. Warrantied.</span></h2>
+    <p class="lead" style="margin:22px auto 0;">
+      Built on existing compliant hardware and open-source software — you never
+      buy, mount, or configure anything yourself. Loop recording runs on the
+      device; the important moments get saved and delivered automatically.
+    </p>
+    <div class="grid cols-3" style="margin-top:32px;text-align:left;">
+      <div class="card">
+        <div style="font-size:1.8rem;">🛣️</div>
+        <h3 style="margin-top:10px;">Road-facing</h3>
+        <p class="muted" style="margin-top:8px;font-size:0.95rem;">
+          Point-and-forget protection. Evidence for every mile, no consent paperwork.
+        </p>
+      </div>
+      <div class="card">
+        <div style="font-size:1.8rem;">🎥</div>
+        <h3 style="margin-top:10px;">Dual-facing</h3>
+        <p class="muted" style="margin-top:8px;font-size:0.95rem;">
+          Road + driver view for the full safety picture. Your choice at install time.
+        </p>
+      </div>
+      <div class="card">
+        <div style="font-size:1.8rem;">🛠️</div>
+        <h3 style="margin-top:10px;">We handle it all</h3>
+        <p class="muted" style="margin-top:8px;font-size:0.95rem;">
+          Hardware, install, configuration, and warranty — one call, one invoice.
+        </p>
+      </div>
+    </div>
+    <p style="margin-top:32px;font-size:1.05rem;">
+      To join the waitlist, call
+      <a href={`tel:${PHONE_TEL}`} style="color:var(--teal);text-decoration:none;font-weight:700;">{PHONE_DISPLAY}</a>
+      or email
+      <a href={`mailto:${EMAIL}`} style="color:var(--teal);text-decoration:none;font-weight:700;">{EMAIL}</a>.
+    </p>
+  </div>
+</section>

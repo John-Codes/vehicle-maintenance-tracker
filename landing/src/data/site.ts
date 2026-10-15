@@ -38,7 +38,6 @@ export const BUNDLE = [
 ];
 
 export const COMING_SOON = [
-  { icon: '🎥', title: 'Dashcams' },
   { icon: '📝', title: 'DOT / ELD compliance' },
   { icon: '⛽', title: 'Fuel management' },
 ];
