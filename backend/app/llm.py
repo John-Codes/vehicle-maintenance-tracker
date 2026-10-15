@@ -5,18 +5,19 @@ import httpx
 from fastapi import HTTPException
 
 from .config import CHAT_MODEL, OPENROUTER_API_KEY
+from .inspections_tools import run_inspection_tool
 from .tools import run_tool
 
 OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions'
 MAX_TOOL_ROUNDS = 6
 
 
-async def complete(system_prompt: str, messages: list, tools=None) -> str:
+async def complete(system_prompt: str, messages: list, tools=None, principal=None, model=None) -> str:
     if not OPENROUTER_API_KEY:
         raise HTTPException(503, 'Chat is not configured: set OPENROUTER_API_KEY')
     conversation = [{'role': 'system', 'content': system_prompt}, *messages]
     for _ in range(MAX_TOOL_ROUNDS):
-        pack = await _call(conversation, tools)
+        pack = await _call(conversation, tools, model)
         tool_calls = pack.get('tool_calls') or []
         if not tool_calls:
             content = (pack.get('content') or '').strip()
@@ -31,13 +32,27 @@ async def complete(system_prompt: str, messages: list, tools=None) -> str:
                 args = json.loads(raw_args)
             except json.JSONDecodeError:
                 args = {}
-            result = await run_tool(function.get('name', ''), args if isinstance(args, dict) else {})
+            result = await _run_any_tool(function.get('name', ''), args if isinstance(args, dict) else {}, principal)
             conversation.append({'role': 'tool', 'tool_call_id': call.get('id', ''), 'content': result})
     raise HTTPException(502, 'LLM did not finish after multiple tool rounds')
 
 
-async def _call(conversation, tools) -> dict:
-    payload = {'model': CHAT_MODEL, 'messages': conversation}
+async def _run_any_tool(name: str, args: dict, principal) -> str:
+    """Inspection tools first, then the base record tools. Errors become
+    tool-result text so the assistant can explain instead of crashing."""
+    try:
+        result = await run_inspection_tool(name, args, principal)
+        if result is not None:
+            return json.dumps(result, default=str)
+        return await run_tool(name, args, principal)
+    except HTTPException as error:
+        return json.dumps({'error': error.detail})
+    except Exception as error:  # noqa: BLE001 - surface to the assistant
+        return json.dumps({'error': str(error).splitlines()[0][:200]})
+
+
+async def _call(conversation, tools, model) -> dict:
+    payload = {'model': model or CHAT_MODEL, 'messages': conversation}
     if tools:
         payload['tools'] = tools
     headers = {'Authorization': f'Bearer {OPENROUTER_API_KEY}'}

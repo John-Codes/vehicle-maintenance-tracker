@@ -14,6 +14,7 @@ class ChatInputBar extends StatelessWidget {
     final sidePadding = MediaQuery.of(context).size.width > 800 ? 24.0 : 16.0;
     return Column(children: [
       if (logic.isLoading) const ChatLoadingLine(),
+      if (logic.pendingPhoto != null) _PendingPhotoRow(logic: logic),
       Container(
         padding: EdgeInsets.symmetric(horizontal: sidePadding, vertical: 8),
         decoration: BoxDecoration(
@@ -21,6 +22,12 @@ class ChatInputBar extends StatelessWidget {
           border: Border(top: BorderSide(color: scheme.outlineVariant)),
         ),
         child: Row(children: [
+          IconButton(
+            tooltip: 'Attach inspection photo',
+            icon: const Icon(Icons.photo_camera_outlined),
+            onPressed: logic.isLoading ? null : logic.attachPhoto,
+          ),
+          const SizedBox(width: 4),
           Expanded(
             child: EnterToSend(
               isLoading: logic.isLoading,
@@ -54,6 +61,34 @@ class ChatInputBar extends StatelessWidget {
       ),
     ]);
   }
+}
+
+class _PendingPhotoRow extends StatelessWidget {
+  final ChatLogic logic;
+  const _PendingPhotoRow({required this.logic});
+
+  @override
+  Widget build(BuildContext context) => Container(
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+        child: Row(children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.memory(logic.pendingPhoto!,
+                width: 64, height: 64, fit: BoxFit.cover),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Text('Photo attached - it will be sent with your next '
+                'message and verified as taken today.'),
+          ),
+          IconButton(
+            tooltip: 'Remove photo',
+            icon: const Icon(Icons.close),
+            onPressed: logic.removePendingPhoto,
+          ),
+        ]),
+      );
 }
 
 class ChatLoadingLine extends StatelessWidget {

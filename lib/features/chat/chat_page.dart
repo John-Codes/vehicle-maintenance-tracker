@@ -18,6 +18,7 @@ class _ChatPageState extends State<ChatPage> {
   void initState() {
     super.initState();
     logic.addListener(_onUpdate);
+    WidgetsBinding.instance.addPostFrameCallback((_) => logic.loadHistory());
   }
 
   @override
