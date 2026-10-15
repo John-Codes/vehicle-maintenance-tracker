@@ -4,12 +4,14 @@ import '../../core/api_client.dart';
 import 'chat_api.dart';
 import 'chat_message.dart';
 
-/// Server-side chat history for the signed-in user: auto-loads once a session
-/// token exists (retried on every auth change because the chat tab can be
-/// built before sign-in finishes), plus manual reload and clear.
+/// Server-side conversation history, one TOPIC per thread, private per user.
+/// Auto-continues the newest thread on sign-in; manual open/new/delete.
 mixin ChatHistoryMixin on ChangeNotifier {
   final ChatApi _historyApi = ChatApi();
   bool _historyLoaded = false;
+
+  /// The thread the current view belongs to ('' = brand-new conversation).
+  String currentTopicId = '';
 
   /// Provided by ChatLogic: the visible message list and the greeting reset.
   List<ChatMessage> get messages;
@@ -18,6 +20,7 @@ mixin ChatHistoryMixin on ChangeNotifier {
   void onAuthChanged() {
     if (ApiClient.bearerToken == null) {
       _historyLoaded = false;
+      currentTopicId = '';
       resetToGreeting();
       notifyListeners();
       return;
@@ -25,40 +28,54 @@ mixin ChatHistoryMixin on ChangeNotifier {
     loadHistory();
   }
 
-  /// Pull the saved thread once per session. Does not latch while signed out
-  /// or on failure, so the next sign-in retries.
+  /// Continue where the user left off: open their newest thread, if any.
+  /// Does not latch while signed out or on failure, so sign-in retries.
   Future<void> loadHistory() async {
     if (_historyLoaded || ApiClient.bearerToken == null) return;
     try {
-      final history = await _historyApi.loadHistory();
+      final topics = await _historyApi.loadTopics();
       _historyLoaded = true;
-      if (history.isNotEmpty) _show(history);
+      if (topics.isNotEmpty) await openTopic(topics.first.topicId);
     } catch (_) {
       // History is a convenience; chat still works without it.
     }
   }
 
-  /// Force a refresh from the server; returns how many messages came back.
-  /// Keeps the current view when there is nothing saved yet.
-  Future<int> reloadHistory() async {
-    final history = await _historyApi.loadHistory();
-    _historyLoaded = true;
-    if (history.isNotEmpty) _show(history);
-    return history.length;
-  }
+  /// List the user's threads for the history widget, newest activity first.
+  Future<List<ChatTopic>> loadTopicList() => _historyApi.loadTopics();
 
-  /// Wipe the server-side thread and reset this view to the greeting.
-  Future<void> clearHistory() async {
-    await _historyApi.clearHistory();
-    _historyLoaded = true;
-    resetToGreeting();
-    notifyListeners();
-  }
-
-  void _show(List<ChatMessage> history) {
+  /// Show a past thread and continue it on the next send.
+  Future<void> openTopic(String topicId) async {
+    final history = await _historyApi.loadTopic(topicId);
+    currentTopicId = topicId;
     messages
       ..clear()
       ..addAll(history);
     notifyListeners();
+  }
+
+  /// Start a fresh conversation (the previous thread stays saved server-side).
+  void newConversation() {
+    currentTopicId = '';
+    resetToGreeting();
+    notifyListeners();
+  }
+
+  /// The server assigns the thread id on the first reply of a new topic.
+  void onTurnFinished(String topicId) {
+    if (topicId.isNotEmpty && topicId != currentTopicId) currentTopicId = topicId;
+  }
+
+  /// Delete one thread; reset the view if it was the open one.
+  Future<void> deleteTopic(String topicId) async {
+    await _historyApi.deleteTopic(topicId);
+    if (topicId == currentTopicId) newConversation();
+  }
+
+  /// Wipe every thread of this user in this workspace.
+  Future<void> clearHistory() async {
+    await _historyApi.clearHistory();
+    _historyLoaded = true;
+    newConversation();
   }
 }

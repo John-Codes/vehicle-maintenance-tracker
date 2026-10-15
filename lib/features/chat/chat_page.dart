@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'chat_input_bar.dart';
 import 'chat_logic.dart';
+import 'chat_menu_actions.dart';
 import 'chat_message_bubble.dart';
 
 class ChatPage extends StatefulWidget {
@@ -41,53 +42,6 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
-  Future<void> _onMenu(String action) async {
-    if (action == 'reload') {
-      try {
-        final count = await logic.reloadHistory();
-        _snack(count > 0 ? 'Loaded $count saved messages.' : 'No saved history yet.');
-      } catch (error) {
-        _snack('Could not load history: $_short(error)');
-      }
-      return;
-    }
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Clear chat history?'),
-        content: const Text('Your saved conversation on the server will be '
-            'permanently deleted. This cannot be undone.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Clear'),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
-    try {
-      await logic.clearHistory();
-      _snack('History cleared.');
-    } catch (error) {
-      _snack('Could not clear history: $_short(error)');
-    }
-  }
-
-  String _short(Object error) => error.toString().replaceFirst('Exception: ', '');
-
-  void _snack(String text) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(text),
-      duration: const Duration(seconds: 2),
-    ));
-  }
-
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
@@ -97,11 +51,12 @@ class _ChatPageState extends State<ChatPage> {
         title: const Text('Chat'),
         actions: [
           PopupMenuButton<String>(
-            tooltip: 'Chat history',
-            onSelected: _onMenu,
+            tooltip: 'Chat options',
+            onSelected: (action) => onChatMenuSelected(context, logic, action),
             itemBuilder: (_) => const [
-              PopupMenuItem(value: 'reload', child: Text('Reload history')),
-              PopupMenuItem(value: 'clear', child: Text('Clear history')),
+              PopupMenuItem(value: 'new', child: Text('New conversation')),
+              PopupMenuItem(value: 'topics', child: Text('Past conversations...')),
+              PopupMenuItem(value: 'clear', child: Text('Clear all history')),
             ],
           ),
         ],

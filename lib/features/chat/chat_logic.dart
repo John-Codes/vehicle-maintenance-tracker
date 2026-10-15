@@ -31,11 +31,8 @@ class ChatLogic extends ChangeNotifier with ChatHistoryMixin {
   @override
   void resetToGreeting() {
     messages.clear();
-    messages.add(ChatMessage(
-      text: 'Ask me anything about your service records...',
-      isUser: false,
-      timestamp: DateTime.now(),
-    ));
+    messages.add(ChatMessage(text: 'Ask me anything about your service records...',
+        isUser: false, timestamp: DateTime.now()));
   }
 
   Future<void> attachPhoto() async {
@@ -52,27 +49,27 @@ class ChatLogic extends ChangeNotifier with ChatHistoryMixin {
   }
 
   Future<void> sendMessage() async {
-    if (textController.text.trim().isEmpty && pendingPhoto == null) return;
     if (isLoading) return;
-    if (textController.text.trim().isEmpty) textController.text = 'Daily inspection photo';
+    if (textController.text.trim().isEmpty) {
+      if (pendingPhoto == null) return;
+      textController.text = 'Daily inspection photo';
+    }
     final message = textController.text.trim();
     final photo = pendingPhoto;
     textController.clear();
     pendingPhoto = null;
     focusNode.requestFocus();
-    messages.add(ChatMessage(
-      text: message,
-      isUser: true,
-      timestamp: DateTime.now(),
-      isLoading: true,
-      image: photo,
-    ));
+    messages.add(ChatMessage(text: message, isUser: true,
+        timestamp: DateTime.now(), isLoading: true, image: photo));
     isLoading = true;
     notifyListeners();
 
     String reply;
     try {
-      reply = await _api.ask(message, List<ChatMessage>.from(messages), photo: photo);
+      final turn = await _api.ask(message, List<ChatMessage>.from(messages),
+          photo: photo, topicId: currentTopicId);
+      onTurnFinished(turn.topicId);
+      reply = turn.reply;
       if (reply.isEmpty) reply = 'The assistant returned an empty reply.';
     } catch (error) {
       reply = 'Error: ${error.toString().replaceFirst('Exception: ', '')}';
@@ -85,10 +82,9 @@ class ChatLogic extends ChangeNotifier with ChatHistoryMixin {
   }
 
   void _resolveUserMessage() {
-    if (messages.isNotEmpty && messages.last.isUser && messages.last.isLoading) {
-      final last = messages.removeLast();
-      messages.add(last.copyWith(isLoading: false));
-    }
+    if (messages.isEmpty || !messages.last.isUser || !messages.last.isLoading) return;
+    final last = messages.removeLast();
+    messages.add(last.copyWith(isLoading: false));
   }
 
   @override

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/large_display.dart';
 import 'chat_enter_to_send.dart';
 import 'chat_logic.dart';
+import 'chat_pending_photo_row.dart';
 import 'chat_send_button.dart';
 
 class ChatInputBar extends StatelessWidget {
@@ -14,7 +15,7 @@ class ChatInputBar extends StatelessWidget {
     final sidePadding = MediaQuery.of(context).size.width > 800 ? 24.0 : 16.0;
     return Column(children: [
       if (logic.isLoading) const ChatLoadingLine(),
-      if (logic.pendingPhoto != null) _PendingPhotoRow(logic: logic),
+      if (logic.pendingPhoto != null) ChatPendingPhotoRow(logic: logic),
       Container(
         padding: EdgeInsets.symmetric(horizontal: sidePadding, vertical: 8),
         decoration: BoxDecoration(
@@ -38,20 +39,7 @@ class ChatInputBar extends StatelessWidget {
                 maxLines: null,
                 minLines: 1,
                 style: TextStyle(color: scheme.onSurface),
-                decoration: InputDecoration(
-                  hintText: 'Ask about your service records...',
-                  hintStyle: TextStyle(color: scheme.onSurfaceVariant),
-                  filled: true,
-                  fillColor: scheme.surfaceContainerHighest,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(24),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: biggerTextButtonsEnabled ? 16 : 12,
-                  ),
-                ),
+                decoration: _fieldDecoration(scheme),
               ),
             ),
           ),
@@ -61,33 +49,20 @@ class ChatInputBar extends StatelessWidget {
       ),
     ]);
   }
-}
 
-class _PendingPhotoRow extends StatelessWidget {
-  final ChatLogic logic;
-  const _PendingPhotoRow({required this.logic});
-
-  @override
-  Widget build(BuildContext context) => Container(
-        width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-        child: Row(children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.memory(logic.pendingPhoto!,
-                width: 64, height: 64, fit: BoxFit.cover),
-          ),
-          const SizedBox(width: 12),
-          const Expanded(
-            child: Text('Photo attached - it will be sent with your next '
-                'message and verified as taken today.'),
-          ),
-          IconButton(
-            tooltip: 'Remove photo',
-            icon: const Icon(Icons.close),
-            onPressed: logic.removePendingPhoto,
-          ),
-        ]),
+  InputDecoration _fieldDecoration(ColorScheme scheme) => InputDecoration(
+        hintText: 'Ask about your service records...',
+        hintStyle: TextStyle(color: scheme.onSurfaceVariant),
+        filled: true,
+        fillColor: scheme.surfaceContainerHighest,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(24),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: biggerTextButtonsEnabled ? 16 : 12,
+        ),
       );
 }
 

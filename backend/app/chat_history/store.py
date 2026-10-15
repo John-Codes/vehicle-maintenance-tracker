@@ -1,11 +1,10 @@
-"""Server-side chat history, private per user (user_id + workspace_id).
-Photos are never stored here - only the text exchange."""
+"""Chat message persistence, private per user (user_id + workspace_id).
+Topic/thread management lives in topics_store.py. Text only - never photos."""
 from datetime import datetime, timezone
 
 from ..storage import store
 
 collection = store._collection.database['chat_history']
-MAX_HISTORY = 200
 
 
 def _now() -> str:
@@ -17,30 +16,25 @@ def _visible(principal) -> bool:
     return bool(principal and not principal.is_legacy and principal.user_id)
 
 
-async def save_exchange(principal, user_text: str, assistant_text: str):
+async def append_exchange(principal, topic_id: str, user_text: str, assistant_text: str):
+    """Save one exchange into its thread and bump the thread's activity."""
     if not _visible(principal):
         return
     now = _now()
+    base = {'topic_id': topic_id, 'user_id': principal.user_id,
+            'workspace_id': principal.workspace_id, 'created_at': now}
     await collection.insert_many([
-        {'workspace_id': principal.workspace_id, 'user_id': principal.user_id,
-         'email': principal.email, 'role': 'user', 'content': user_text, 'created_at': now},
-        {'workspace_id': principal.workspace_id, 'user_id': principal.user_id,
-         'email': principal.email, 'role': 'assistant', 'content': assistant_text, 'created_at': now},
+        {**base, 'role': 'user', 'content': user_text},
+        {**base, 'role': 'assistant', 'content': assistant_text},
     ])
 
 
-async def list_history(principal, limit: int = MAX_HISTORY) -> list:
-    if not _visible(principal):
-        return []
-    query = {'user_id': principal.user_id, 'workspace_id': principal.workspace_id}
-    cursor = collection.find(query).sort('created_at', 1).limit(limit)
+async def list_messages(principal, topic_id: str) -> list | None:
+    """One thread's messages, oldest first. None when not the user's topic."""
+    from .topics_store import owned_topic
+    if not _visible(principal) or await owned_topic(principal, topic_id) is None:
+        return None
+    query = {'topic_id': topic_id, 'user_id': principal.user_id}
+    cursor = collection.find(query).sort('created_at', 1)
     return [{'role': doc['role'], 'content': doc['content'], 'created_at': doc['created_at']}
             async for doc in cursor]
-
-
-async def clear_history(principal):
-    if not _visible(principal):
-        return 0
-    result = await collection.delete_many({'user_id': principal.user_id,
-                                           'workspace_id': principal.workspace_id})
-    return result.deleted_count

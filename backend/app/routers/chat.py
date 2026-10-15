@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends
 from ..auth.guards import require_workspace_user
 from ..auth.session import Principal
 from ..chat_context import SYSTEM_PROMPT, records_brief
-from ..chat_history import save_exchange
+from ..chat_history import append_exchange, ensure_topic
 from ..config import VISION_MODEL
 from ..inspections_tools import INSPECTION_TOOLS
 from ..inspections_vision import VISION_PROMPT_RULES, date_gate, image_parts
@@ -27,6 +27,7 @@ class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=4000)
     history: list[HistoryMessage] = []
     images: list[str] = Field(default=[], max_length=3)
+    topic_id: str = Field(default='', max_length=40)
 
     @field_validator('message')
     @classmethod
@@ -71,5 +72,9 @@ async def chat(request: ChatRequest, principal: Principal = Depends(require_work
         conversation.append({'role': 'user', 'content': request.message})
         reply = await complete(system_prompt, conversation, tools=ALL_TOOLS, principal=principal)
 
-    await save_exchange(principal, request.message, reply)
-    return {'reply': reply}
+    topic = await ensure_topic(principal, request.topic_id, request.message)
+    if topic is not None:
+        await append_exchange(principal, topic['topic_id'], request.message, reply)
+    return {'reply': reply,
+            'topic_id': (topic or {}).get('topic_id', ''),
+            'topic': (topic or {}).get('title', '')}
