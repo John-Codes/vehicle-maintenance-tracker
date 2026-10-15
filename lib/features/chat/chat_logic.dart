@@ -3,14 +3,17 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../auth/auth_controller.dart';
 import 'chat_api.dart';
+import 'chat_history_mixin.dart';
 import 'chat_message.dart';
 
 /// App-lifetime chat state so the conversation survives tab switches, backed by
 /// the server-side per-user history (`/chat/history`).
 final chatLogic = ChatLogic();
 
-class ChatLogic extends ChangeNotifier {
+class ChatLogic extends ChangeNotifier with ChatHistoryMixin {
+  @override
   final messages = <ChatMessage>[];
   final textController = TextEditingController();
   final focusNode = FocusNode();
@@ -19,31 +22,20 @@ class ChatLogic extends ChangeNotifier {
   /// Photo chosen for the next message (in-memory only; never stored).
   Uint8List? pendingPhoto;
   final ChatApi _api = ChatApi();
-  bool _historyLoaded = false;
 
   ChatLogic() {
+    resetToGreeting();
+    AuthController.instance.addListener(onAuthChanged);
+  }
+
+  @override
+  void resetToGreeting() {
+    messages.clear();
     messages.add(ChatMessage(
       text: 'Ask me anything about your service records...',
       isUser: false,
       timestamp: DateTime.now(),
     ));
-  }
-
-  /// Pull the signed-in user's saved thread once the session is known.
-  Future<void> loadHistory() async {
-    if (_historyLoaded) return;
-    _historyLoaded = true;
-    try {
-      final history = await _api.loadHistory();
-      if (history.isNotEmpty) {
-        messages
-          ..clear()
-          ..addAll(history);
-        notifyListeners();
-      }
-    } catch (_) {
-      // History is a convenience; chat still works without it.
-    }
   }
 
   Future<void> attachPhoto() async {
@@ -60,10 +52,9 @@ class ChatLogic extends ChangeNotifier {
   }
 
   Future<void> sendMessage() async {
-    final text = textController.text.trim();
-    if (text.isEmpty && pendingPhoto == null) return;
+    if (textController.text.trim().isEmpty && pendingPhoto == null) return;
     if (isLoading) return;
-    if (text.isEmpty) textController.text = 'Daily inspection photo';
+    if (textController.text.trim().isEmpty) textController.text = 'Daily inspection photo';
     final message = textController.text.trim();
     final photo = pendingPhoto;
     textController.clear();
@@ -102,6 +93,7 @@ class ChatLogic extends ChangeNotifier {
 
   @override
   void dispose() {
+    AuthController.instance.removeListener(onAuthChanged);
     textController.dispose();
     focusNode.dispose();
     super.dispose();
