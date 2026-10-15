@@ -61,4 +61,30 @@ p.muted { color: var(--muted); }
   border-radius: 20px; padding: 26px;
 }
 
-footer { border-top: 1px solid rgba(255, 255, 255, 0.1); padding: 40px 0; }
+.kicker {
+  display: inline-block; font-size: 0.8rem; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--teal);
+  margin-bottom: 16px;
+}
+
+.btn {
+  display: inline-block; padding: 16px 32px; border-radius: 30px;
+  font-weight: 700; text-decoration: none; font-size: 1rem;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.btn:hover { transform: translateY(-2px); }
+.btn-primary {
+  background: linear-gradient(90deg, var(--teal), var(--teal-dark));
+  color: var(--navy-deep); box-shadow: 0 10px 30px rgba(31, 221, 185, 0.35);
+}
+.btn-ghost { border: 1.5px solid var(--muted); color: var(--white); }
+
+.trust-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 16px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--teal);
+}

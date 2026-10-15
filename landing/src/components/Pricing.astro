@@ -1,36 +1,32 @@
 ---
-import { TIERS, APP_URL } from '../data/site';
+import { TIERS, PHONE_DISPLAY, PHONE_TEL } from '../data/site';
 ---
 <section class="alt" id="pricing">
   <div class="wrap">
     <span class="kicker">Simple pricing</span>
-    <h2>One bundle. You only choose how many<br />pro hours come with it.</h2>
-    <div class="grid cols-3" style="margin-top:44px;">
+    <h2>One price. Everything included.</h2>
+    <p class="lead">No add-ons. No surprises. Smart tracker installed, full software suite, and experienced technicians — all in one monthly price.</    <p class="muted" style="margin-top: 8px;">Already have trackers? <a href="mailto:efexzium@gmail.com" style="color: var(--teal);">Talk to us for a discount.</a></p>
+
+    <div class="grid cols-3" style="margin-top: 40px;">
       {TIERS.map((tier) => (
-        <div class={`card ${tier.featured ? 'featured' : ''}`}
-             style={tier.featured
-               ? 'border:2px solid var(--teal);box-shadow:0 14px 44px rgba(31,221,185,0.22);'
-               : ''}>
-          {tier.featured && <span class="kicker" style="margin-bottom:8px;">Most popular</span>}
+        <div class={`card ${tier.featured ? 'featured' : ''}`} style={tier.featured ? 'border:2px solid var(--teal);box-shadow:0 14px 44px rgba(31,221,185,0.22);' : ''}>
+          {tier.featured && <span class="kicker" style="margin-bottom: 8px; display: inline-block;">Most popular</span>}
           <h3>{tier.name}</h3>
-          <p style="margin-top:14px;">
-            <span style="font-size:2.6rem;font-weight:800;letter-spacing:-0.02em;">${tier.price}</span>
+          <p style="margin-top: 14px;">
+            <span style="font-size: 2.6rem; font-weight: 800; letter-spacing: -0.02em;">${tier.price}</span>
             <span class="muted"> /vehicle/mo</span>
           </p>
-          <p style="margin-top:10px;font-size:1.05rem;">
+          <p style="margin-top: 10px; font-size: 0.95rem;">
             <strong class="accent">{tier.hours} prepaid pro hour{tier.hours > 1 ? 's' : ''}</strong>
-            {tier.priority && <span style="color:var(--mint);"> · priority dispatch</span>}
+            {tier.priority && <span style="color: var(--mint);"> · priority dispatch</span>}
           </p>
-          <p class="muted" style="margin-top:12px;font-size:0.95rem;">{tier.tagline}</p>
-          <a class="btn btn-primary" style="margin-top:24px;display:block;text-align:center;"
-             href={APP_URL}>Start with {tier.name}</a>
+          <p class="muted" style="margin-top: 10px; font-size: 0.9rem;">{tier.tagline}</p>
+          <a class="btn btn-primary" style="margin-top: 24px; display: block; text-align: center;" href="#contact">Start with {tier.name}</a>
         </div>
       ))}
     </div>
-    <p class="muted" style="margin-top:28px;font-size:0.95rem;">
-      All tiers include the complete software bundle: GPS tracking + telematics, OBD sync,
-      inspection checklists, AI maintenance info, alerts, team roles, and reports.
-      Pro hours pool across your fleet. Prices exclude the one-time OBD adapter per vehicle.
+    <p class="muted" style="margin-top: 24px; text-align: center;">
+      Already have trackers? <a href="mailto:efexzium@gmail.com" style="color: var(--teal);">Talk to us for a discount.</a>
     </p>
   </div>
 </section>
