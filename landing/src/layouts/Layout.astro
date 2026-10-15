@@ -1,0 +1,25 @@
+---
+import '../styles/global.css';
+import ShieldMark from '../components/ShieldMark.astro';
+const { title = 'SafePrevent — Software watches. Pros show up.' } = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Fleet preventive maintenance: GPS tracking, telematics, inspections, and experienced professionals dispatched before something breaks. Made in the USA — Texas Proud." />
+    <title>{title}</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body>
+    <header class="wrap" style="display:flex;align-items:center;justify-content:space-between;padding-top:22px;padding-bottom:22px;">
+      <a href="/" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;">
+        <ShieldMark width="30" height="30" />
+        <strong style="font-size:1.15rem;">Safe<span style="color:var(--teal);font-weight:300;">Prevent</span></strong>
+      </a>
+      <a class="btn btn-primary" style="padding:10px 22px;font-size:0.9rem;" href="#pricing">Get started</a>
+    </header>
+    <slot />
+  </body>
+</html>

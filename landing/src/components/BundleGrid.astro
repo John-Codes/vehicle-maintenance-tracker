@@ -1,0 +1,22 @@
+---
+import { BUNDLE } from '../data/site';
+---
+<section class="alt">
+  <div class="wrap">
+    <span class="kicker">The complete bundle — every plan, no feature games</span>
+    <h2>Everything your fleet needs, all in one.</h2>
+    <div class="grid cols-3" style="margin-top:40px;">
+      {BUNDLE.map((f) => (
+        <div class="card">
+          <div style="font-size:1.8rem;">{f.icon}</div>
+          <h3 style="margin-top:12px;">{f.title}</h3>
+          <p class="muted" style="margin-top:8px;font-size:0.98rem;">{f.text}</p>
+        </div>
+      ))}
+    </div>
+    <p class="muted" style="margin-top:32px;">
+      Software alone watches dashboards. SafePrevent sends an experienced
+      professional before something breaks — that is the whole point.
+    </p>
+  </div>
+</section>
