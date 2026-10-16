@@ -9,7 +9,7 @@ MONGO_PORT=${MONGO_PORT:-27027}
 MONGO_CONTAINER=${MONGO_CONTAINER:-chat-gpt-tracker-mongo}
 mkdir -p "$LOG_DIR"
 KEY=${APP_API_KEY:-local-review-key}
-IP=$(hostname -I | awk '{print $1}'); [ -n "$IP" ] || IP=127.0.0.1
+IP=${IP:-$(hostname -I | awk '{print $1}')}; [ -n "$IP" ] || IP=127.0.0.1
 
 echo "== local test MongoDB =="
 if ! docker ps --format '{{.Names}}' | grep -qx "$MONGO_CONTAINER"; then

@@ -48,9 +48,11 @@ class _ChatPageState extends State<ChatPage> {
     final pad = width < 640 ? 16.0 : 28.0;
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         title: const Text('Chat'),
         actions: [
           PopupMenuButton<String>(
+            icon: const Icon(Icons.menu),
             tooltip: 'Chat options',
             onSelected: (action) => onChatMenuSelected(context, logic, action),
             itemBuilder: (_) => const [
