@@ -50,18 +50,16 @@ class _ChatPageState extends State<ChatPage> {
       appBar: AppBar(
         centerTitle: true,
         title: const Text('Chat'),
-        actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.menu),
-            tooltip: 'Chat options',
-            onSelected: (action) => onChatMenuSelected(context, logic, action),
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'new', child: Text('New conversation')),
-              PopupMenuItem(value: 'topics', child: Text('Past conversations...')),
-              PopupMenuItem(value: 'clear', child: Text('Clear all history')),
-            ],
-          ),
-        ],
+        leading: PopupMenuButton<String>(
+          icon: const Icon(Icons.menu),
+          tooltip: 'Chat options',
+          onSelected: (action) => onChatMenuSelected(context, logic, action),
+          itemBuilder: (_) => const [
+            PopupMenuItem(value: 'new', child: Text('New conversation')),
+            PopupMenuItem(value: 'topics', child: Text('Past conversations...')),
+            PopupMenuItem(value: 'clear', child: Text('Clear all history')),
+          ],
+        ),
       ),
       body: Column(children: [
         Expanded(
