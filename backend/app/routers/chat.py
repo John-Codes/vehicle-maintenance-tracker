@@ -27,6 +27,9 @@ class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=4000)
     history: list[HistoryMessage] = []
     images: list[str] = Field(default=[], max_length=3)
+    # Maintenance frequency the photos belong to (due window: daily=today,
+    # weekly=this ISO week, monthly=this calendar month).
+    frequency: str = Field(default='daily', pattern='^(daily|weekly|monthly)$')
     topic_id: str = Field(default='', max_length=40)
 
     @field_validator('message')
@@ -59,12 +62,13 @@ async def chat(request: ChatRequest, principal: Principal = Depends(require_work
         conversation.pop(0)
 
     if request.images:
-        gate = date_gate(request.images)
+        gate = date_gate(request.images, request.frequency)
         if not gate['ok']:
-            return {'reply': gate['message']}
+            return {'reply': gate['message'], 'topic_id': '', 'topic': ''}
         system_prompt += VISION_PROMPT_RULES + f"\nServer date check: {gate['message']}"
-        text = (f"{request.message}\n\n[Attached photos: {len(request.images)}. "
-                f"Server verified the dates above; inspect the content yourself.]")
+        text = (f"{request.message}\n\n[Attached photos: {len(request.images)} for the "
+                f"{request.frequency} maintenance frequency. Server verified the dates "
+                'above; inspect the content yourself.]')
         conversation.append({'role': 'user', 'content': [{'type': 'text', 'text': text}, *image_parts(request.images)]})
         reply = await complete(system_prompt, conversation, tools=ALL_TOOLS,
                                principal=principal, model=VISION_MODEL or None)

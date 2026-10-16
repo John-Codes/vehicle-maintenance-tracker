@@ -35,7 +35,7 @@ class ChatApi {
   ChatApi([ApiClient? api]) : _api = api ?? ApiClient();
 
   Future<ChatTurn> ask(String message, List<ChatMessage> history,
-      {Uint8List? photo, String? topicId}) async {
+      {Uint8List? photo, String? topicId, String? frequency}) async {
     final body = <String, dynamic>{
       'message': message,
       'history': [
@@ -43,6 +43,7 @@ class ChatApi {
           {'role': item.isUser ? 'user' : 'assistant', 'content': item.text},
       ],
       if (photo != null) 'images': [base64Encode(photo)],
+      if (photo != null && frequency != null) 'frequency': frequency,
       if (topicId != null && topicId.isNotEmpty) 'topic_id': topicId,
     };
     final reply = await _api.post('/chat', body);

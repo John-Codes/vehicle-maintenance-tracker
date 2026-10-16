@@ -21,6 +21,10 @@ class ChatLogic extends ChangeNotifier with ChatHistoryMixin {
 
   /// Photo chosen for the next message (in-memory only; never stored).
   Uint8List? pendingPhoto;
+
+  /// Which maintenance frequency the attached photo is for (due window:
+  /// daily = today, weekly = this ISO week, monthly = this month).
+  String photoFrequency = 'daily';
   final ChatApi _api = ChatApi();
 
   ChatLogic() {
@@ -45,6 +49,12 @@ class ChatLogic extends ChangeNotifier with ChatHistoryMixin {
 
   void removePendingPhoto() {
     pendingPhoto = null;
+    photoFrequency = 'daily';
+    notifyListeners();
+  }
+
+  void setPhotoFrequency(String frequency) {
+    photoFrequency = frequency;
     notifyListeners();
   }
 
@@ -56,8 +66,10 @@ class ChatLogic extends ChangeNotifier with ChatHistoryMixin {
     }
     final message = textController.text.trim();
     final photo = pendingPhoto;
+    final photoFrequency = this.photoFrequency;
     textController.clear();
     pendingPhoto = null;
+    this.photoFrequency = 'daily';
     focusNode.requestFocus();
     messages.add(ChatMessage(text: message, isUser: true,
         timestamp: DateTime.now(), isLoading: true, image: photo));
@@ -67,7 +79,8 @@ class ChatLogic extends ChangeNotifier with ChatHistoryMixin {
     String reply;
     try {
       final turn = await _api.ask(message, List<ChatMessage>.from(messages),
-          photo: photo, topicId: currentTopicId);
+          photo: photo, topicId: currentTopicId,
+          frequency: photo != null ? photoFrequency : null);
       onTurnFinished(turn.topicId);
       reply = turn.reply;
       if (reply.isEmpty) reply = 'The assistant returned an empty reply.';

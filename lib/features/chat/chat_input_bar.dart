@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/large_display.dart';
 import 'chat_enter_to_send.dart';
+import 'chat_frequency_chips.dart';
 import 'chat_logic.dart';
 import 'chat_pending_photo_row.dart';
 import 'chat_send_button.dart';
@@ -15,7 +16,10 @@ class ChatInputBar extends StatelessWidget {
     final sidePadding = MediaQuery.of(context).size.width > 800 ? 24.0 : 16.0;
     return Column(children: [
       if (logic.isLoading) const ChatLoadingLine(),
-      if (logic.pendingPhoto != null) ChatPendingPhotoRow(logic: logic),
+      if (logic.pendingPhoto != null) ...[
+        ChatPendingPhotoRow(logic: logic),
+        ChatFrequencyChips(logic: logic),
+      ],
       Container(
         padding: EdgeInsets.symmetric(horizontal: sidePadding, vertical: 8),
         decoration: BoxDecoration(

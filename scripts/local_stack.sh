@@ -54,6 +54,8 @@ API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" OPENROUTER_API_KEY="${OPEN
   DB_NAME=chat_gpt_tracker_local COLLECTION=items backend/.venv/bin/python backend/e2e_chat_history.py
 API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" OPENROUTER_API_KEY="${OPENROUTER_API_KEY:-}" MONGO_URI=mongodb://127.0.0.1:$MONGO_PORT \
   DB_NAME=chat_gpt_tracker_local COLLECTION=items backend/.venv/bin/python backend/e2e_vision_inspection.py
+API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" MONGO_URI=mongodb://127.0.0.1:$MONGO_PORT \
+  DB_NAME=chat_gpt_tracker_local COLLECTION=items backend/.venv/bin/python backend/e2e_weekly_monthly_messages.py
 
 # OPTIONAL manual test: sends a REAL daily-inspection email to TESTER_EMAIL.
 # Start the API with AGENTMAIL_API_KEY + AGENTMAIL_INBOX_ID, then uncomment:
