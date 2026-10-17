@@ -56,7 +56,7 @@ def main():
         try:
             status, payload = call('POST', '/service-types/ai-generate',
                                    {'brand': 'Toyota', 'model': 'Prius', 'year': 2012},
-                                   timeout=780)
+                                   timeout=600)
             assert status == 200, status
             break
         except SystemExit as err:
