@@ -16,6 +16,12 @@ MESSAGE_CHANNELS = [c.strip() for c in os.getenv('MESSAGE_CHANNELS', 'email').sp
 SCHEDULE_TZ = os.getenv('SCHEDULE_TZ', 'America/Chicago')
 DAILY_INSPECTION_HOUR = int(os.getenv('DAILY_INSPECTION_HOUR', '3'))
 DAILY_INSPECTION_MINUTE = int(os.getenv('DAILY_INSPECTION_MINUTE', '0'))
+# Weekly/monthly maintenance reminders: sent only when a workspace has records
+# DUE for the frequency (no spam), on their configured day at 03:00 local.
+WEEKLY_REMINDER_DAY = os.getenv('WEEKLY_REMINDER_DAY', 'mon')
+WEEKLY_REMINDER_HOUR = int(os.getenv('WEEKLY_REMINDER_HOUR', '3'))
+MONTHLY_REMINDER_DAY = int(os.getenv('MONTHLY_REMINDER_DAY', '1'))
+MONTHLY_REMINDER_HOUR = int(os.getenv('MONTHLY_REMINDER_HOUR', '3'))
 AGENTMAIL_API_KEY = os.getenv('AGENTMAIL_API_KEY', '')
 AGENTMAIL_BASE_URL = os.getenv('AGENTMAIL_BASE_URL', 'https://api.agentmail.to/v0')
 AGENTMAIL_INBOX_ID = os.getenv('AGENTMAIL_INBOX_ID', '')

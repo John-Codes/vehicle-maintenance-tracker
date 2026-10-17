@@ -1,6 +1,6 @@
 import json
 
-from .inspections_tools.service import today_date
+from .due_periods import is_record_due, today_date
 
 FREQUENCIES = ('daily', 'weekly', 'monthly')
 MAX_RECORDS = 50
@@ -23,7 +23,8 @@ SYSTEM_PROMPT = (
     '- You can mark inspections done with mark_inspection_done (one vehicle) or '
     'mark_all_inspections_done (every vehicle).\n'
     '- inspection_due in the records brief tells you which frequencies are due '
-    f'("today" is {today_date()} in the workspace timezone).\n'
+    f'(daily windows are "today" = {today_date()} in the workspace timezone; '
+    'weekly = current ISO week Mon-Sun, monthly = current calendar month).\n'
     '- The signed-in user is recorded as responsible for every mark. Say so.\n'
     '- AMBIGUITY: if the workspace has several records and the user did not say '
     'clearly which vehicle, DO NOT call any tool. Ask which vehicle first.\n'
@@ -46,12 +47,8 @@ def records_brief(records: list) -> str:
 
 
 def _due(record: dict) -> dict:
-    schedule = record.get('schedule') or {}
-    status = {}
-    for frequency in FREQUENCIES:
-        last = (schedule.get(frequency) or {}).get('last_done_at') or ''
-        status[frequency] = 'due today' if last[:10] != today_date() else 'done today'
-    return status
+    return {frequency: ('due' if is_record_due(record, frequency) else 'done')
+            for frequency in FREQUENCIES}
 
 
 def record_line(record: dict) -> dict:

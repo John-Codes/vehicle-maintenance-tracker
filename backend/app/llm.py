@@ -10,19 +10,26 @@ from .tools import run_tool
 
 OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions'
 MAX_TOOL_ROUNDS = 6
+MAX_EMPTY_RETRIES = 1
 
 
 async def complete(system_prompt: str, messages: list, tools=None, principal=None, model=None) -> str:
     if not OPENROUTER_API_KEY:
         raise HTTPException(503, 'Chat is not configured: set OPENROUTER_API_KEY')
     conversation = [{'role': 'system', 'content': system_prompt}, *messages]
-    for _ in range(MAX_TOOL_ROUNDS):
+    empty_retries = 0
+    for _ in range(MAX_TOOL_ROUNDS + 1):
         pack = await _call(conversation, tools, model)
         tool_calls = pack.get('tool_calls') or []
         if not tool_calls:
             content = (pack.get('content') or '').strip()
             if content:
                 return content
+            # Free models occasionally return empty text; retry once before failing.
+            if empty_retries < MAX_EMPTY_RETRIES:
+                empty_retries += 1
+                await asyncio.sleep(2)
+                continue
             raise HTTPException(502, 'LLM returned an empty reply')
         conversation.append({'role': 'assistant', 'content': pack.get('content') or '', 'tool_calls': tool_calls})
         for call in tool_calls:

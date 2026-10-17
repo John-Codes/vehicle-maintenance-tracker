@@ -1,8 +1,9 @@
-"""Core job logic: per-workspace daily inspection messages."""
+"""Core job logic: per-workspace daily inspection messages (unconditional,
+generic by design). Weekly/monthly due-only jobs live in service_due.py."""
 from ..auth.workspace_store import collection as users_collection
 from ..messaging.models import MessageRecipient
 from ..messaging.service import send_message
-from .builders import build_daily_inspection_message
+from .builders_daily import build_daily_inspection_message
 
 
 async def all_workspace_ids() -> list[str]:

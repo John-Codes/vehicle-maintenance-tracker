@@ -18,9 +18,9 @@ class ChatPendingPhotoRow extends StatelessWidget {
                 width: 64, height: 64, fit: BoxFit.cover),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Text('Photo attached - it will be sent with your next '
-                'message and verified as taken today.'),
+                'message and verified as taken ${_window(logic.photoFrequency)}.'),
           ),
           IconButton(
             tooltip: 'Remove photo',
@@ -29,4 +29,10 @@ class ChatPendingPhotoRow extends StatelessWidget {
           ),
         ]),
       );
+
+  String _window(String frequency) => switch (frequency) {
+        'weekly' => 'within this week',
+        'monthly' => 'within this month',
+        _ => 'today',
+      };
 }

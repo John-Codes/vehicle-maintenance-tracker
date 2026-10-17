@@ -54,12 +54,22 @@ API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" OPENROUTER_API_KEY="${OPEN
   DB_NAME=chat_gpt_tracker_local COLLECTION=items backend/.venv/bin/python backend/e2e_chat_history.py
 API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" OPENROUTER_API_KEY="${OPENROUTER_API_KEY:-}" MONGO_URI=mongodb://127.0.0.1:$MONGO_PORT \
   DB_NAME=chat_gpt_tracker_local COLLECTION=items backend/.venv/bin/python backend/e2e_vision_inspection.py
+API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" MONGO_URI=mongodb://127.0.0.1:$MONGO_PORT \
+  DB_NAME=chat_gpt_tracker_local COLLECTION=items backend/.venv/bin/python backend/e2e_weekly_monthly_messages.py
 
 # OPTIONAL manual test: sends a REAL daily-inspection email to TESTER_EMAIL.
 # Start the API with AGENTMAIL_API_KEY + AGENTMAIL_INBOX_ID, then uncomment:
 # API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" MONGO_URI=mongodb://127.0.0.1:$MONGO_PORT \
 #   DB_NAME=chat_gpt_tracker_local TESTER_EMAIL=efexzium@gmail.com \
 #   backend/.venv/bin/python backend/e2e_manual_daily_inspection_email.py
+
+# OPTIONAL manual e2e against the TESTER'S OWN account: drops local users,
+# then real chat marks (attribution), due-only weekly/monthly/daily reminder
+# emails to their inbox, and their saved chat history. Needs OPENROUTER_API_KEY.
+# API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" MONGO_URI=mongodb://127.0.0.1:$MONGO_PORT \
+#   DB_NAME=chat_gpt_tracker_local COLLECTION=items TESTER_EMAIL=efexzium@gmail.com \
+#   OPENROUTER_API_KEY="$OPENROUTER_API_KEY" \
+#   backend/.venv/bin/python backend/e2e_manual_tester_account.py
 
 echo "== clearing e2e users so the first reviewer signs in as manager =="
 docker exec "$MONGO_CONTAINER" mongosh --quiet chat_gpt_tracker_local --eval 'db.users.drop(); db.invites.drop()' >/dev/null 2>&1 || true

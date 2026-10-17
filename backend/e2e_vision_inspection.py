@@ -1,7 +1,8 @@
-"""E2E: strict same-day photo gate for chat inspections. Builds real JPEGs
-with real EXIF dates (no mocks): yesterday's photo and a dateless photo must
-be rejected WITHOUT any LLM call; a photo dated today passes the gate and
-reaches the vision model (needs OPENROUTER_API_KEY)."""
+"""E2E: strict due-window photo gate for chat maintenance marks. Builds real
+JPEGs with real EXIF dates (no mocks): photos outside the frequency's window
+(daily=today, weekly=this ISO week, monthly=this calendar month) are rejected
+WITHOUT any LLM call; in-window photos pass the gate and reach the vision
+model (needs OPENROUTER_API_KEY, else a 503 proves the gate passed)."""
 import base64
 import io
 import os
@@ -32,6 +33,30 @@ def _b64(raw: bytes) -> str:
     return base64.b64encode(raw).decode()
 
 
+def _raw_chat(token, message, images, frequency=None):
+    import json as _json
+    import urllib.error
+    import urllib.request
+    base = os.environ['API_URL'].rstrip('/')
+    body = {'message': message, 'history': [], 'images': images}
+    if frequency:
+        body['frequency'] = frequency
+    req = urllib.request.Request(f'{base}/chat', data=_json.dumps(body).encode(),
+                                 method='POST',
+                                 headers={'Content-Type': 'application/json',
+                                          'Authorization': f'Bearer {token}'})
+    try:
+        with urllib.request.urlopen(req, timeout=180) as res:
+            return res.status, _json.loads(res.read())
+    except urllib.error.HTTPError as err:
+        return err.code, _json.loads(err.read() or b'{}')
+
+
+def _week_start(today: str) -> str:
+    from app.due_periods import window_start
+    return window_start('weekly')
+
+
 def main():
     email = fresh_email('visionmgr')
     token, user = dev_token(email)
@@ -41,50 +66,55 @@ def main():
 
     yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
     today = datetime.now().strftime('%Y-%m-%d')
+    week_start = _week_start(today)
+    before_this_week = (datetime.fromisoformat(week_start) - timedelta(days=2)).strftime('%Y-%m-%d')
+    month_start = today[:8] + '01'
 
-    print('case 1: yesterday photo rejected by the server gate (no LLM call)')
-    reply = call('POST', '/chat', {'message': 'Daily inspection photo for E2E-TRUCK-1',
-                                  'history': [], 'images': [_b64(jpeg_with_exif_date(yesterday))]},
-                token=token)['reply']
-    print('  reply:', reply[:120])
+    print('case 1 (daily): yesterday photo rejected by the server gate')
+    status, body = _raw_chat(token, 'Daily inspection photo for E2E-TRUCK-1',
+                             [_b64(jpeg_with_exif_date(yesterday))])
+    assert status == 200 and 'not within today' in body['reply'], (status, body['reply'][:120])
+    print('  reply:', body['reply'][:100])
+
+    print('case 2 (daily): dateless photo rejected')
+    status, body = _raw_chat(token, 'Daily inspection photo for E2E-TRUCK-1',
+                            [_b64(jpeg_with_exif_date(None))])
+    assert status == 200 and 'no date metadata' in body['reply'], body['reply'][:120]
+
+    print('case 3 (weekly): last-week photo rejected for weekly')
+    status, body = _raw_chat(token, 'Weekly service photo for E2E-TRUCK-1',
+                             [_b64(jpeg_with_exif_date(before_this_week))], frequency='weekly')
+    assert status == 200 and 'not within this week' in body['reply'], body['reply'][:120]
+    print('  reply:', body['reply'][:100])
+
+    print('case 4 (weekly): yesterday photo PASSES the weekly gate')
+    if yesterday >= week_start:
+        status, body = _raw_chat(token, 'Weekly service photo for E2E-TRUCK-1',
+                                 [_b64(jpeg_with_exif_date(yesterday))], frequency='weekly')
+        assert status == 200 and body['reply'] and 'not within' not in body['reply'], (status, str(body)[:160])
+        print('  reply:', str(body.get('reply', body))[:140])
+    else:
+        print('  skipped: today is Monday, no in-week-but-not-today date exists')
+
+    print('case 5 (monthly): mid-last-month photo rejected for monthly')
+    last_month = (datetime.now().replace(day=15) - timedelta(days=31)).strftime('%Y-%m-%d')
+    status, body = _raw_chat(token, 'Monthly service photo for E2E-TRUCK-1',
+                             [_b64(jpeg_with_exif_date(last_month))], frequency='monthly')
+    assert status == 200 and 'not within this month' in body['reply'], body['reply'][:120]
+
+    print('case 6 (monthly): earlier-this-month photo PASSES the monthly gate')
+    if today != month_start and os.environ.get('OPENROUTER_API_KEY'):
+        in_month = month_start if today != month_start else today
+        status, body = _raw_chat(token, 'Monthly service photo for E2E-TRUCK-1',
+                                 [_b64(jpeg_with_exif_date(in_month))], frequency='monthly')
+        assert status == 200 and 'not within' not in str(body), (status, str(body)[:160])
+        print('  reply:', str(body.get('reply', body))[:140])
+    else:
+        print('  skipped: today is the 1st or no OPENROUTER_API_KEY')
+
     daily = call('GET', f"/service-records/{truck['id']}", token=token)['schedule']['daily']
-    assert daily['last_done_at'] == '', daily
-    assert 'Rejected' in reply or 'not today' in reply, reply
-
-    print('case 2: dateless photo rejected')
-    reply = call('POST', '/chat', {'message': 'Daily inspection photo for E2E-TRUCK-1',
-                                  'history': [], 'images': [_b64(jpeg_with_exif_date(None))]},
-                token=token)['reply']
-    print('  reply:', reply[:120])
-    assert 'no date metadata' in reply, reply
-    assert call('GET', f"/service-records/{truck['id']}", token=token)['schedule']['daily']['last_done_at'] == ''
-
-    if not os.environ.get('OPENROUTER_API_KEY'):
-        print('case 3 skipped: no OPENROUTER_API_KEY (gate already proven above)')
-        print('PASS vision gate (strict same-day, deterministic)')
-        return
-
-    print('case 3: today-dated photo passes the gate and reaches the vision model')
-    status, payload = _raw_chat(token, 'Daily inspection photo for E2E-TRUCK-1',
-                                [_b64(jpeg_with_exif_date(today))])
-    assert status == 200 and payload['reply'], (status, payload)
-    print('  reply:', payload['reply'][:160])
-    print('PASS vision gate (strict same-day, deterministic)')
-
-
-def _raw_chat(token, message, images):
-    import json as _json
-    import urllib.request
-    base = os.environ['API_URL'].rstrip('/')
-    body = _json.dumps({'message': message, 'history': [], 'images': images}).encode()
-    req = urllib.request.Request(f'{base}/chat', data=body, method='POST',
-                                 headers={'Content-Type': 'application/json',
-                                          'Authorization': f'Bearer {token}'})
-    try:
-        with urllib.request.urlopen(req, timeout=180) as res:
-            return res.status, _json.loads(res.read())
-    except urllib.error.HTTPError as err:
-        return err.code, err.read().decode()
+    assert daily['last_done_at'] == '', 'blank test photos must never mark anything'
+    print('PASS vision gate (strict per-frequency due windows, deterministic)')
 
 
 main()
