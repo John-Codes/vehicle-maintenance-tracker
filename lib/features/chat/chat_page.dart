@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'chat_input_bar.dart';
 import 'chat_logic.dart';
+import 'chat_menu_actions.dart';
 import 'chat_message_bubble.dart';
 
 class ChatPage extends StatefulWidget {
@@ -18,6 +19,7 @@ class _ChatPageState extends State<ChatPage> {
   void initState() {
     super.initState();
     logic.addListener(_onUpdate);
+    WidgetsBinding.instance.addPostFrameCallback((_) => logic.loadHistory());
   }
 
   @override
@@ -45,7 +47,20 @@ class _ChatPageState extends State<ChatPage> {
     final width = MediaQuery.sizeOf(context).width;
     final pad = width < 640 ? 16.0 : 28.0;
     return Scaffold(
-      appBar: AppBar(title: const Text('Chat')),
+      appBar: AppBar(
+        centerTitle: true,
+        title: const Text('Chat'),
+        leading: PopupMenuButton<String>(
+          icon: const Icon(Icons.menu),
+          tooltip: 'Chat options',
+          onSelected: (action) => onChatMenuSelected(context, logic, action),
+          itemBuilder: (_) => const [
+            PopupMenuItem(value: 'new', child: Text('New conversation')),
+            PopupMenuItem(value: 'topics', child: Text('Past conversations...')),
+            PopupMenuItem(value: 'clear', child: Text('Clear all history')),
+          ],
+        ),
+      ),
       body: Column(children: [
         Expanded(
           child: ListView.builder(

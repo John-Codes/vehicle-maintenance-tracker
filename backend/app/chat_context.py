@@ -1,5 +1,7 @@
 import json
 
+from .due_periods import is_record_due, today_date
+
 FREQUENCIES = ('daily', 'weekly', 'monthly')
 MAX_RECORDS = 50
 MAX_CHARS = 50000
@@ -16,7 +18,22 @@ SYSTEM_PROMPT = (
     'Call a tool when the brief is missing details, when the user asks to search, '
     'create, update, or delete records or service types, or to confirm a change '
     'actually happened. Ask the user for any required details they have not supplied '
-    'before creating or updating.'
+    'before creating or updating.\n\n'
+    'MARKING INSPECTIONS DONE:\n'
+    '- You can mark inspections done with mark_inspection_done (one vehicle) or '
+    'mark_all_inspections_done (every vehicle).\n'
+    '- inspection_due in the records brief tells you which frequencies are due '
+    f'(daily windows are "today" = {today_date()} in the workspace timezone; '
+    'weekly = current ISO week Mon-Sun, monthly = current calendar month).\n'
+    '- The signed-in user is recorded as responsible for every mark. Say so.\n'
+    '- AMBIGUITY: if the workspace has several records and the user did not say '
+    'clearly which vehicle, DO NOT call any tool. Ask which vehicle first.\n'
+    '- If there is exactly one record, you may mark it without asking.\n'
+    '- MARK ALL: only when the user explicitly asks for all vehicles. First ask '
+    '"Are you sure you want to mark ALL vehicles done? It will be recorded under '
+    'your name." Only call the tool after they confirm yes.\n'
+    '- After marking, confirm which vehicle(s) were marked, the frequency, and that '
+    'their email is on record as responsible.'
 )
 
 
@@ -29,6 +46,11 @@ def records_brief(records: list) -> str:
     return json.dumps(summary, default=str)[:MAX_CHARS]
 
 
+def _due(record: dict) -> dict:
+    return {frequency: ('due' if is_record_due(record, frequency) else 'done')
+            for frequency in FREQUENCIES}
+
+
 def record_line(record: dict) -> dict:
     schedule = record.get('schedule') or {}
     progress = {}
@@ -39,6 +61,7 @@ def record_line(record: dict) -> dict:
         progress[frequency] = f'{done}/{len(steps)}'
     technician = record.get('technician') or {}
     return {
+        'id': record.get('id', ''),
         'vehicle_number': record.get('vehicle_number', ''),
         'vin': record.get('vin', ''),
         'license_plate': record.get('license_plate', ''),
@@ -49,6 +72,7 @@ def record_line(record: dict) -> dict:
         'technician': technician.get('name', ''),
         'worker_names': record.get('worker_names') or [],
         'checklist_progress': progress,
+        'inspection_due': _due(record),
         'notes': (record.get('notes') or '')[:500],
         'next_steps': (record.get('next_steps') or '')[:500],
     }

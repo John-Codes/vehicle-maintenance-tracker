@@ -71,19 +71,34 @@ async def _update_type(args):
     schedule = _coerce_schedule(args.get('schedule')) or current['schedule']
     return await type_store.save(ServiceType(name=name, schedule=schedule), item_id)
 
-async def run_tool(name, args):
+def _scoped_for_chat(doc, principal):
+    """Chat is workspace-scoped: signed-in users may only touch their workspace."""
+    if principal is None or principal.is_legacy:
+        return doc
+    effective = doc.get('workspace_id') or 'default'
+    if effective != principal.workspace_id:
+        raise HTTPException(404, 'Record not found')
+    return doc
+
+async def run_tool(name, args, principal=None):
     try:
+        scope = None if (principal is None or principal.is_legacy) else principal.workspace_id
         if name == 'list_records':
-            return _dump(await store.list('service_record'))
+            return _dump(await store.list('service_record', scope))
         if name == 'search_records':
-            return _dump(await store.search('service_record', str(args.get('text', ''))))
+            return _dump(await store.search('service_record', str(args.get('text', '')), scope))
         if name == 'get_record':
-            return _dump(await store.get(str(args['id'])))
+            return _dump(_scoped_for_chat(await store.get(str(args['id'])), principal))
         if name == 'create_record':
-            return _dump(await store.create(_draft_record()))
+            draft = _draft_record()
+            if scope:
+                draft['workspace_id'] = scope
+            return _dump(await store.create(draft))
         if name == 'update_record':
+            _scoped_for_chat(await store.get(str(args['id'])), principal)
             return _dump(await _update_record(args))
         if name == 'delete_record':
+            _scoped_for_chat(await store.get(str(args['id'])), principal)
             await store.delete(str(args['id']))
             return '{}'
         if name == 'list_service_types':

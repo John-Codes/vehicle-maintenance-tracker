@@ -36,6 +36,8 @@ class ComponentList(BaseModel):
 
 class FrequencyList(BaseModel):
     last_done_at: str = ''
+    last_done_by: str = ''
+    last_done_via: str = ''
     components: list[ComponentList] = []
     time_started_at: str = ''
     time_spent_seconds: int = 0
