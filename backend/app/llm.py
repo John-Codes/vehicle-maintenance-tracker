@@ -10,22 +10,25 @@ from .tools import run_tool
 
 OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions'
 MAX_TOOL_ROUNDS = 6
-MAX_EMPTY_RETRIES = 1
+# Free-tier models intermittently return empty replies or throttle; retry
+# both layers so chat, AI generation, and CI survive congestion.
+MAX_EMPTY_RETRIES = 3
 
 
-async def complete(system_prompt: str, messages: list, tools=None, principal=None, model=None) -> str:
+async def complete(system_prompt: str, messages: list, tools=None, principal=None,
+                   model=None, stop_after_tool: str = '', timeout: int = 90) -> str:
     if not OPENROUTER_API_KEY:
         raise HTTPException(503, 'Chat is not configured: set OPENROUTER_API_KEY')
     conversation = [{'role': 'system', 'content': system_prompt}, *messages]
     empty_retries = 0
-    for _ in range(MAX_TOOL_ROUNDS + 1):
-        pack = await _call(conversation, tools, model)
+    for _ in range(MAX_TOOL_ROUNDS + MAX_EMPTY_RETRIES):
+        pack = await _call(conversation, tools, model or CHAT_MODEL, timeout)
         tool_calls = pack.get('tool_calls') or []
         if not tool_calls:
             content = (pack.get('content') or '').strip()
             if content:
                 return content
-            # Free models occasionally return empty text; retry once before failing.
+            # Free models occasionally return empty text; retry before failing.
             if empty_retries < MAX_EMPTY_RETRIES:
                 empty_retries += 1
                 await asyncio.sleep(2)
@@ -40,6 +43,10 @@ async def complete(system_prompt: str, messages: list, tools=None, principal=Non
             except json.JSONDecodeError:
                 args = {}
             result = await _run_any_tool(function.get('name', ''), args if isinstance(args, dict) else {}, principal)
+            # One-shot flows (e.g. AI type generation) end as soon as the
+            # target tool succeeds - no extra LLM rounds needed.
+            if stop_after_tool and function.get('name') == stop_after_tool and '"error"' not in result:
+                return result
             conversation.append({'role': 'tool', 'tool_call_id': call.get('id', ''), 'content': result})
     raise HTTPException(502, 'LLM did not finish after multiple tool rounds')
 
@@ -58,15 +65,15 @@ async def _run_any_tool(name: str, args: dict, principal) -> str:
         return json.dumps({'error': str(error).splitlines()[0][:200]})
 
 
-async def _call(conversation, tools, model) -> dict:
-    payload = {'model': model or CHAT_MODEL, 'messages': conversation}
+async def _call(conversation, tools, target_model: str, timeout: int) -> dict:
+    payload = {'model': target_model, 'messages': conversation}
     if tools:
         payload['tools'] = tools
     headers = {'Authorization': f'Bearer {OPENROUTER_API_KEY}'}
     last_error = 'unknown error'
-    for attempt in range(2):
+    for attempt in range(3):
         try:
-            async with httpx.AsyncClient(timeout=90) as client:
+            async with httpx.AsyncClient(timeout=timeout) as client:
                 response = await client.post(OPENROUTER_URL, json=payload, headers=headers)
         except httpx.HTTPError as error:
             last_error = str(error)
@@ -76,6 +83,6 @@ async def _call(conversation, tools, model) -> dict:
             if response.status_code < 500 and response.status_code != 429:
                 raise HTTPException(502, f'LLM rejected request ({response.status_code}): {response.text[:200]}')
             last_error = f'HTTP {response.status_code}'
-        if attempt == 0:
-            await asyncio.sleep(2)
+        if attempt < 2:
+            await asyncio.sleep(2 if attempt == 0 else 5)
     raise HTTPException(502, f'LLM request failed: {last_error}')

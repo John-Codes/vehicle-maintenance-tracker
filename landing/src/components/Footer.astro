@@ -1,0 +1,17 @@
+---
+import { PHONE_DISPLAY, PHONE_TEL, EMAIL, APP_URL } from '../data/site';
+---
+<footer>
+  <div class="wrap" style="display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;align-items:center;">
+    <div>
+      <strong>SafePrevent</strong>
+      <p class="muted" style="font-size:0.95rem;margin-top:6px;">
+        <a href={`tel:${PHONE_TEL}`} style="color:var(--teal);text-decoration:none;">{PHONE_DISPLAY}</a>
+        &nbsp;·&nbsp;
+        <a href={`mailto:${EMAIL}`} style="color:var(--teal);text-decoration:none;">{EMAIL}</a>
+      </p>
+      <!-- TODO: swap in the business phone above when the dedicated line is live. -->
+    </div>
+    <a class="btn btn-primary" href={APP_URL}>Open the app →</a>
+  </div>
+</footer>

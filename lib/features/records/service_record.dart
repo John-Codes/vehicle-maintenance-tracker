@@ -2,7 +2,8 @@ import '../maintenance_lists/maintenance_schedule.dart';
 import '../profile/technician.dart';
 
 class ServiceRecord {
-  final String id, vehicleNumber, vehicleType, serviceType, dateStarted, notes, nextSteps, vin, licensePlate;
+  final String id, vehicleNumber, vehicleType, brand, model, serviceType, dateStarted, notes, nextSteps, vin, licensePlate;
+  final int? year;
   final Map<String, dynamic> scanner;
   final num? miles, hours;
   final List<String> workerNames;
@@ -12,6 +13,9 @@ class ServiceRecord {
     this.id = '',
     this.vehicleNumber = '',
     this.vehicleType = '',
+    this.brand = '',
+    this.model = '',
+    this.year,
     this.scanner = const {},
     this.serviceType = '',
     required this.dateStarted,
@@ -29,6 +33,9 @@ class ServiceRecord {
         id: j['id'] ?? '',
         vehicleNumber: j['vehicle_number'] ?? '',
         vehicleType: j['vehicle_type'] ?? '',
+        brand: j['brand'] ?? '',
+        model: j['model'] ?? '',
+        year: j['year'],
         scanner: Map<String, dynamic>.from(j['scanner'] ?? {}),
         serviceType: j['service_type'] ?? '',
         dateStarted: j['date_started'] ?? '',
@@ -45,6 +52,9 @@ class ServiceRecord {
   Map<String, dynamic> toJson() => {
         'vehicle_number': vehicleNumber,
         'vehicle_type': vehicleType,
+        'brand': brand,
+        'model': model,
+        'year': year,
         'scanner': scanner,
         'service_type': serviceType,
         'date_started': dateStarted,
@@ -61,6 +71,9 @@ class ServiceRecord {
   ServiceRecord copyWith({
     String? vehicleNumber,
     String? vehicleType,
+    String? brand,
+    String? model,
+    int? year,
     Map<String, dynamic>? scanner,
     String? serviceType,
     num? miles,
@@ -79,6 +92,9 @@ class ServiceRecord {
         technician: technician ?? this.technician,
         vehicleNumber: vehicleNumber ?? this.vehicleNumber,
         vehicleType: vehicleType ?? this.vehicleType,
+        brand: brand ?? this.brand,
+        model: model ?? this.model,
+        year: year ?? this.year,
         scanner: scanner ?? this.scanner,
         serviceType: serviceType ?? this.serviceType,
         miles: miles ?? this.miles,

@@ -18,6 +18,7 @@ jobs:
       AUTH_MODE: dev
       JWT_SECRET: ci-jwt-secret
       FIREBASE_PROJECT_ID: fleet-tracker-9242a
+      AI_TYPE_MODEL: nvidia/nemotron-3-ultra-550b-a55b:free
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
     steps:
       - uses: actions/checkout@v4
@@ -32,6 +33,11 @@ jobs:
         run: flutter pub get && flutter analyze --no-fatal-infos
       - name: Flutter tests
         run: flutter test
+      - name: Landing build check
+        working-directory: landing
+        run: |
+          npm ci
+          npm run build
       - name: Backend e2e against throwaway dev DB
         working-directory: backend
         run: |
@@ -43,6 +49,7 @@ jobs:
           API_URL=http://127.0.0.1:8011 python e2e_time_tracking.py
           API_URL=http://127.0.0.1:8011 python e2e_auth.py
           API_URL=http://127.0.0.1:8011 python e2e_rbac.py
+          API_URL=http://127.0.0.1:8011 python e2e_ai_types.py
           API_URL=http://127.0.0.1:8011 python e2e_workspace_auto_assign.py
           API_URL=http://127.0.0.1:8011 python e2e_workspace_switching.py
           API_URL=http://127.0.0.1:8011 python e2e_daily_inspection_messages.py

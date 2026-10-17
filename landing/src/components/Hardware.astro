@@ -1,0 +1,38 @@
+---
+import { HARDWARE } from '../data/site';
+---
+<section>
+  <div class="wrap">
+    <span class="kicker">Products</span>
+    <h2>Hardware that works for you.</h2>
+    <p class="lead" style="margin-top:18px;">{HARDWARE.intro}</p>
+    <div class="grid cols-3" style="margin-top:36px;">
+      {HARDWARE.kits.map((kit) => (
+        <div class={`card ${kit.featured ? 'featured' : ''}`}
+             style={kit.featured
+               ? 'border:2px solid var(--teal);box-shadow:0 14px 44px rgba(31,221,185,0.22);'
+               : ''}>
+          <div style="font-size:1.8rem;">{kit.icon}</div>
+          <h3 style="margin-top:10px;">{kit.name}</h3>
+          <p class="muted" style="margin-top:4px;font-size:0.9rem;">{kit.device}</p>
+          <p style="margin-top:14px;">
+            <span style="font-size:2rem;font-weight:800;letter-spacing:-0.02em;">${kit.price}</span>
+            <span class="muted"> /vehicle/mo</span>
+          </p>
+          <p class="muted" style="margin-top:10px;font-size:0.95rem;">{kit.text}</p>
+        </div>
+      ))}
+      <div class="card">
+        <div style="font-size:1.8rem;">🛠️</div>
+        <h3 style="margin-top:10px;">What we do</h3>
+        <ul style="margin-top:12px;list-style:none;display:grid;gap:8px;color:var(--muted);font-size:0.95rem;">
+          <li>✓ Select + install the right kit per vehicle</li>
+          <li>✓ Configure filters, decoding, and uploads</li>
+          <li>✓ Monitor every logger; swap units fast</li>
+          <li>✓ 3-year warranty — one number to call</li>
+        </ul>
+      </div>
+    </div>
+    <p class="muted" style="margin-top:26px;font-size:0.9rem;">{HARDWARE.terms}</p>
+  </div>
+</section>

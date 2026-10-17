@@ -39,6 +39,16 @@ TOOLS = [
 def _now():
     return datetime.now(timezone.utc).isoformat()
 
+def _coerce_schedule(schedule):
+    """Some models pass the schedule as a JSON string instead of an object;
+    accept both so tool calls never fail on double-encoding."""
+    if isinstance(schedule, str):
+        try:
+            return json.loads(schedule)
+        except json.JSONDecodeError:
+            return schedule
+    return schedule
+
 def _dump(data):
     return json.dumps(data, default=str)
 
@@ -58,7 +68,7 @@ async def _update_type(args):
     item_id = str(args['id'])
     current = await type_store.get(item_id)
     name = args.get('name') or current['name']
-    schedule = args.get('schedule') or current['schedule']
+    schedule = _coerce_schedule(args.get('schedule')) or current['schedule']
     return await type_store.save(ServiceType(name=name, schedule=schedule), item_id)
 
 def _scoped_for_chat(doc, principal):
@@ -96,7 +106,8 @@ async def run_tool(name, args, principal=None):
         if name == 'get_service_type':
             return _dump(await type_store.get(str(args['id'])))
         if name == 'create_service_type':
-            return _dump(await type_store.save(ServiceType(**args)))
+            return _dump(await type_store.save(ServiceType(
+                name=args['name'], schedule=_coerce_schedule(args.get('schedule')))))
         if name == 'update_service_type':
             return _dump(await _update_type(args))
         if name == 'delete_service_type':

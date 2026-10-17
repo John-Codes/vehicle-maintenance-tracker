@@ -10,6 +10,7 @@ from .routers import chat, profile, records, users
 from .scheduler import start_scheduler, stop_scheduler
 from .storage import store
 from .service_types import router as service_types, store as type_store
+from .service_types.ai_generate_router import router as ai_types
 
 @asynccontextmanager
 async def lifespan(app):
@@ -25,6 +26,7 @@ app.include_router(profile.router)
 app.include_router(records.router)
 app.include_router(chat.router)
 app.include_router(service_types.router)
+app.include_router(ai_types)
 app.include_router(auth.router)
 app.include_router(auth_dev.router)
 app.include_router(users.router)
