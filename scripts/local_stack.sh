@@ -9,7 +9,7 @@ MONGO_PORT=${MONGO_PORT:-27027}
 MONGO_CONTAINER=${MONGO_CONTAINER:-chat-gpt-tracker-mongo}
 mkdir -p "$LOG_DIR"
 KEY=${APP_API_KEY:-local-review-key}
-IP=$(hostname -I | awk '{print $1}'); [ -n "$IP" ] || IP=127.0.0.1
+IP=${IP:-$(hostname -I | awk '{print $1}')}; [ -n "$IP" ] || IP=127.0.0.1
 
 echo "== local test MongoDB =="
 if ! docker ps --format '{{.Names}}' | grep -qx "$MONGO_CONTAINER"; then
@@ -48,6 +48,12 @@ API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" backend/.venv/bin/python b
 API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" backend/.venv/bin/python backend/e2e_workspace_switching.py
 API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" MONGO_URI=mongodb://127.0.0.1:$MONGO_PORT \
   DB_NAME=chat_gpt_tracker_local COLLECTION=items backend/.venv/bin/python backend/e2e_daily_inspection_messages.py
+API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" OPENROUTER_API_KEY="${OPENROUTER_API_KEY:-}" MONGO_URI=mongodb://127.0.0.1:$MONGO_PORT \
+  DB_NAME=chat_gpt_tracker_local COLLECTION=items backend/.venv/bin/python backend/e2e_chat_mark_done.py
+API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" OPENROUTER_API_KEY="${OPENROUTER_API_KEY:-}" MONGO_URI=mongodb://127.0.0.1:$MONGO_PORT \
+  DB_NAME=chat_gpt_tracker_local COLLECTION=items backend/.venv/bin/python backend/e2e_chat_history.py
+API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" OPENROUTER_API_KEY="${OPENROUTER_API_KEY:-}" MONGO_URI=mongodb://127.0.0.1:$MONGO_PORT \
+  DB_NAME=chat_gpt_tracker_local COLLECTION=items backend/.venv/bin/python backend/e2e_vision_inspection.py
 
 # OPTIONAL manual test: sends a REAL daily-inspection email to TESTER_EMAIL.
 # Start the API with AGENTMAIL_API_KEY + AGENTMAIL_INBOX_ID, then uncomment:

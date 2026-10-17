@@ -19,7 +19,7 @@ class ChatMessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (message.isUser) return _UserBubble(text: message.text);
+    if (message.isUser) return _UserBubble(text: message.text, image: message.image);
     return Padding(
       padding: const EdgeInsets.only(bottom: 26),
       child: Column(
@@ -47,7 +47,8 @@ class ChatMessageBubble extends StatelessWidget {
 
 class _UserBubble extends StatelessWidget {
   final String text;
-  const _UserBubble({required this.text});
+  final Uint8List? image;
+  const _UserBubble({required this.text, this.image});
 
   @override
   Widget build(BuildContext context) => Align(
@@ -60,7 +61,21 @@ class _UserBubble extends StatelessWidget {
             color: Theme.of(context).colorScheme.primary,
             borderRadius: BorderRadius.circular(18),
           ),
-          child: Text(text, style: const TextStyle(color: Colors.white)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (image != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.memory(image!, width: 220, fit: BoxFit.cover),
+                  ),
+                ),
+              Text(text, style: const TextStyle(color: Colors.white)),
+            ],
+          ),
         ),
       );
 }

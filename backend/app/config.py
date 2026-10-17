@@ -6,6 +6,10 @@ COLLECTION = os.getenv('COLLECTION', 'items')
 API_KEY = os.getenv('APP_API_KEY', 'change-me')
 OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY', '')
 CHAT_MODEL = os.getenv('CHAT_MODEL', 'nvidia/nemotron-3.5-lightning:free')
+# Vision model for photo inspections; empty disables the photo path.
+# Free vision-capable default; set to google/gemini-2.5-flash once the
+# OpenRouter account has credits (it rejects with 402 without them).
+VISION_MODEL = os.getenv('VISION_MODEL', 'nvidia/nemotron-3.5-super-vl:free')
 CORS_ORIGINS = [value.strip() for value in os.getenv('CORS_ALLOWED_ORIGINS', '*').split(',')]
 
 MESSAGE_CHANNELS = [c.strip() for c in os.getenv('MESSAGE_CHANNELS', 'email').split(',') if c.strip()]
