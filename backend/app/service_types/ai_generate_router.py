@@ -29,28 +29,28 @@ AI_TYPE_FALLBACK_MODEL = os.getenv('AI_TYPE_FALLBACK_MODEL', 'nvidia/nemotron-3.
 
 @router.post('/ai-generate')
 async def ai_generate(request: AiTypeRequest, x_app_key: str = Header(default='')):
-    """Generate a maintenance checklist via an LLM function call.
-
-    The model runs with ONLY the create_service_type tool, so it cannot
-    touch records or other types. If its JSON fails validation, the tool
-    returns the error and the model repairs it in the same conversation.
-    """
+    """Generate a maintenance checklist via an LLM function call. The model
+    runs with ONLY the create_service_type tool, so it cannot touch records
+    or other types; invalid JSON is repaired in the same conversation."""
     if x_app_key != API_KEY:
         raise HTTPException(401, 'Master app key required')
     vehicle = f'{request.year} {request.brand} {request.model}'.strip()
     prompt = build_generation_prompt(request.brand, request.model, request.year)
     created = None
     reply = ''
-    for model in (AI_TYPE_MODEL, AI_TYPE_FALLBACK_MODEL):
-        # Free-tier models occasionally return empty replies (especially
-        # when the provider is overloaded); retry with a pause so a new
-        # rate window opens before trying the fallback model.
+    # Hard total deadline so an overloaded free tier fails fast instead of
+    # piling attempts: try the primary model, then the lighter fallback.
+    deadline = asyncio.get_event_loop().time() + 480
+    for model, timeout in ((AI_TYPE_MODEL, 120), (AI_TYPE_FALLBACK_MODEL, 180)):
         for attempt in range(3):
+            if asyncio.get_event_loop().time() >= deadline:
+                break
             try:
                 reply = await complete(prompt, [
                     {'role': 'user', 'content': f'Create the maintenance type for the {vehicle} now.'}],
                     tools=[_create_type_tool()], model=model,
-                    stop_after_tool='create_service_type', timeout=240)
+                    stop_after_tool='create_service_type', timeout=timeout,
+                    deadline=deadline)
                 created = json.loads(reply)
                 break
             except (HTTPException, json.JSONDecodeError):
@@ -59,7 +59,7 @@ async def ai_generate(request: AiTypeRequest, x_app_key: str = Header(default=''
                     break
                 if attempt < 2:
                     await asyncio.sleep(10)
-        if created is not None:
+        if created is not None or asyncio.get_event_loop().time() >= deadline:
             break
     if created is None:
         raise HTTPException(502, 'The AI could not create the type. Its reply: ' + reply[:300])

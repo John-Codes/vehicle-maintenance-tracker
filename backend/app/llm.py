@@ -16,20 +16,26 @@ MAX_EMPTY_RETRIES = 3
 
 
 async def complete(system_prompt: str, messages: list, tools=None, principal=None,
-                   model=None, stop_after_tool: str = '', timeout: int = 90) -> str:
+                   model=None, stop_after_tool: str = '', timeout: int = 90,
+                   deadline: float | None = None) -> str:
     if not OPENROUTER_API_KEY:
         raise HTTPException(503, 'Chat is not configured: set OPENROUTER_API_KEY')
     conversation = [{'role': 'system', 'content': system_prompt}, *messages]
+    loop = asyncio.get_event_loop()
     empty_retries = 0
     for _ in range(MAX_TOOL_ROUNDS + MAX_EMPTY_RETRIES):
-        pack = await _call(conversation, tools, model or CHAT_MODEL, timeout)
+        if deadline is not None and loop.time() >= deadline:
+            raise HTTPException(502, 'LLM call exceeded its time budget')
+        remaining = None if deadline is None else max(5, deadline - loop.time())
+        pack = await _call(conversation, tools, model or CHAT_MODEL,
+                           timeout if remaining is None else min(timeout, remaining))
         tool_calls = pack.get('tool_calls') or []
         if not tool_calls:
             content = (pack.get('content') or '').strip()
             if content:
                 return content
             # Free models occasionally return empty text; retry before failing.
-            if empty_retries < MAX_EMPTY_RETRIES:
+            if empty_retries < MAX_EMPTY_RETRIES and (deadline is None or loop.time() < deadline):
                 empty_retries += 1
                 await asyncio.sleep(2)
                 continue
