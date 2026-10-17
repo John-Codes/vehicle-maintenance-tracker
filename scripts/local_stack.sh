@@ -50,6 +50,14 @@ if [ -n "${OPENROUTER_API_KEY:-}" ]; then
 fi
 API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" backend/.venv/bin/python backend/e2e_workspace_auto_assign.py
 API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" backend/.venv/bin/python backend/e2e_workspace_switching.py
+API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" MONGO_URI=mongodb://127.0.0.1:$MONGO_PORT \
+  DB_NAME=chat_gpt_tracker_local COLLECTION=items backend/.venv/bin/python backend/e2e_daily_inspection_messages.py
+
+# OPTIONAL manual test: sends a REAL daily-inspection email to TESTER_EMAIL.
+# Start the API with AGENTMAIL_API_KEY + AGENTMAIL_INBOX_ID, then uncomment:
+# API_URL=http://127.0.0.1:$API_PORT APP_API_KEY="$KEY" MONGO_URI=mongodb://127.0.0.1:$MONGO_PORT \
+#   DB_NAME=chat_gpt_tracker_local TESTER_EMAIL=efexzium@gmail.com \
+#   backend/.venv/bin/python backend/e2e_manual_daily_inspection_email.py
 
 echo "== clearing e2e users so the first reviewer signs in as manager =="
 docker exec "$MONGO_CONTAINER" mongosh --quiet chat_gpt_tracker_local --eval 'db.users.drop(); db.invites.drop()' >/dev/null 2>&1 || true
