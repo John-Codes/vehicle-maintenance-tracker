@@ -43,6 +43,7 @@ jobs:
           API_URL: http://127.0.0.1:8011
           APP_API_KEY: ci-dev-key
           REVIEW_URL: http://127.0.0.1:8092
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
           pip install -r requirements.txt
           uvicorn app.main:app --host 127.0.0.1 --port 8011 &
